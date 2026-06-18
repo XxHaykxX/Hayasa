@@ -255,6 +255,41 @@ const SignInCard = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+
+  const swap = (m: "signin" | "signup") => {
+    setMode(m);
+    setError("");
+    setInfo("");
+  };
+
+  const signUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setInfo("");
+    const supabase = getSupabase();
+    if (!supabase) {
+      setError(t("notConfigured"));
+      return;
+    }
+    if (!email.includes("@")) {
+      setError(t("errEmail"));
+      return;
+    }
+    if (password.length < 6) {
+      setError(t("errPasswordShort"));
+      return;
+    }
+    setBusy(true);
+    const { data, error: err } = await supabase.auth.signUp({ email, password });
+    setBusy(false);
+    if (err) {
+      setError(err.message);
+      return;
+    }
+    if (data.session) router.push("/my-tours"); // auto-confirmed
+    else setInfo(t("confirmSent")); // email confirmation required
+  };
 
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -397,7 +432,7 @@ const SignInCard = () => {
               </div>
             </div>
             
-            <form className="space-y-5" onSubmit={signIn}>
+            <form className="space-y-5" onSubmit={mode === "signup" ? signUp : signIn}>
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                   {t('email')} <span className="text-amber">*</span>
@@ -456,7 +491,7 @@ const SignInCard = () => {
                   )}
                 >
                   <span className="flex items-center justify-center">
-                    {busy ? t('sending') : t('signIn')}
+                    {busy ? t('sending') : mode === 'signup' ? t('signUp') : t('signIn')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </span>
                   {isHovered && (
@@ -471,10 +506,29 @@ const SignInCard = () => {
                 </Button>
               </motion.div>
               
-              <div className="text-center mt-6">
-                <button type="button" onClick={forgot} className="text-teal hover:text-teal-dark text-sm transition-colors">
-                  {t('forgot')}
-                </button>
+              <div className="text-center mt-6 space-y-2">
+                {mode === 'signin' && (
+                  <button type="button" onClick={forgot} className="block w-full text-teal hover:text-teal-dark text-sm transition-colors">
+                    {t('forgot')}
+                  </button>
+                )}
+                <div className="text-sm text-gray-500">
+                  {mode === 'signin' ? (
+                    <>
+                      {t('noAccount')}{' '}
+                      <button type="button" onClick={() => swap('signup')} className="font-semibold text-teal hover:text-teal-dark transition-colors">
+                        {t('signUp')}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {t('haveAccount')}{' '}
+                      <button type="button" onClick={() => swap('signin')} className="font-semibold text-teal hover:text-teal-dark transition-colors">
+                        {t('signIn')}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </form>
           </motion.div>

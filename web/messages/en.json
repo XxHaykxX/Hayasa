@@ -143,7 +143,12 @@
     "forgot": "Forgot password?",
     "brandTagline": "Group tours across Armenia & Georgia — sign in to manage your bookings.",
     "errCreds": "Invalid email or password.",
-    "resetSent": "Password reset link sent to your email."
+    "resetSent": "Password reset link sent to your email.",
+    "signUp": "Sign up",
+    "noAccount": "No account?",
+    "haveAccount": "Already have an account?",
+    "confirmSent": "Check your inbox to confirm your email, then sign in.",
+    "errPasswordShort": "Password must be at least 6 characters."
   },
   "System": {
     "notFoundTitle": "Page not found",

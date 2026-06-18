@@ -41,15 +41,51 @@ export function WebMap({ stops }: { stops: Stop[] }) {
           controls: ['zoomControl'],
         });
         const coords: [number, number][] = stops.map((s) => [s.lat, s.lng]);
+
+        // Numbered stop markers.
         stops.forEach((s, i) => {
           map.geoObjects.add(
             new ymaps.Placemark([s.lat, s.lng], { iconContent: String(i + 1) }, { preset: 'islands#redCircleIcon' }),
           );
         });
-        map.geoObjects.add(
-          new ymaps.Polyline(coords, {}, { strokeColor: '#E2685E', strokeWidth: 4, strokeStyle: 'dash' }),
-        );
-        map.setBounds(map.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 40 });
+
+        // Ultimate fallback: straight dashed line when no road route exists.
+        const straight = () => {
+          map.geoObjects.add(
+            new ymaps.Polyline(coords, {}, { strokeColor: '#E2685E', strokeWidth: 4, strokeStyle: 'dash' }),
+          );
+          map.setBounds(map.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 40 });
+        };
+
+        // Road-following route through the stops in order (like a navigator).
+        const tryRoute = (mode: 'auto' | 'pedestrian', onFail: () => void) => {
+          const route = new ymaps.multiRouter.MultiRoute(
+            { referencePoints: coords, params: { routingMode: mode } },
+            {
+              wayPointVisible: false, // keep our own numbered markers
+              viaPointVisible: false,
+              routeActiveStrokeColor: 'E2685E',
+              routeActiveStrokeWidth: 5,
+              routeStrokeColor: 'E2685E',
+              routeStrokeWidth: 5,
+              boundsAutoApply: true,
+            },
+          );
+          route.model.events.add('requestsuccess', () => {
+            if (route.getRoutes().getLength() === 0) {
+              map.geoObjects.remove(route);
+              onFail();
+            }
+          });
+          route.model.events.add('requesterror', () => {
+            map.geoObjects.remove(route);
+            onFail();
+          });
+          map.geoObjects.add(route);
+        };
+
+        // Car route first; if no driveable road, try walking; else straight line.
+        tryRoute('auto', () => tryRoute('pedestrian', straight));
       });
     };
     if (document.getElementById(id)) {
@@ -57,7 +93,7 @@ export function WebMap({ stops }: { stops: Stop[] }) {
     } else {
       const s = document.createElement('script');
       s.id = id;
-      s.src = `https://api-maps.yandex.ru/2.1/?apikey=${YANDEX_KEY}&lang=en_US`;
+      s.src = `https://api-maps.yandex.ru/2.1/?apikey=${YANDEX_KEY}&lang=en_US&load=package.full`;
       s.onload = init;
       document.head.appendChild(s);
     }
