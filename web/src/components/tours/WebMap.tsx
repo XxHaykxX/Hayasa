@@ -50,42 +50,72 @@ export function WebMap({ stops }: { stops: Stop[] }) {
         });
 
         // Ultimate fallback: straight dashed line when no road route exists.
+        let settled = false;
         const straight = () => {
+          if (settled) return;
+          settled = true;
           map.geoObjects.add(
             new ymaps.Polyline(coords, {}, { strokeColor: '#E2685E', strokeWidth: 4, strokeStyle: 'dash' }),
           );
-          map.setBounds(map.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 40 });
+          try {
+            map.setBounds(map.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 40 });
+          } catch {
+            /* ignore */
+          }
         };
 
         // Road-following route through the stops in order (like a navigator).
         const tryRoute = (mode: 'auto' | 'pedestrian', onFail: () => void) => {
-          const route = new ymaps.multiRouter.MultiRoute(
-            { referencePoints: coords, params: { routingMode: mode } },
-            {
-              wayPointVisible: false, // keep our own numbered markers
-              viaPointVisible: false,
-              routeActiveStrokeColor: 'E2685E',
-              routeActiveStrokeWidth: 5,
-              routeStrokeColor: 'E2685E',
-              routeStrokeWidth: 5,
-              boundsAutoApply: true,
-            },
-          );
+          let route: any;
+          try {
+            route = new ymaps.multiRouter.MultiRoute(
+              { referencePoints: coords, params: { routingMode: mode } },
+              {
+                wayPointVisible: false, // keep our own numbered markers
+                viaPointVisible: false,
+                routeActiveStrokeColor: 'E2685E',
+                routeActiveStrokeWidth: 5,
+                routeStrokeColor: 'E2685E',
+                routeStrokeWidth: 5,
+                boundsAutoApply: true,
+              },
+            );
+          } catch {
+            onFail();
+            return;
+          }
           route.model.events.add('requestsuccess', () => {
             if (route.getRoutes().getLength() === 0) {
-              map.geoObjects.remove(route);
+              try {
+                map.geoObjects.remove(route);
+              } catch {
+                /* ignore */
+              }
               onFail();
+            } else {
+              settled = true; // road route drawn — cancel any pending fallback
             }
           });
           route.model.events.add('requesterror', () => {
-            map.geoObjects.remove(route);
+            try {
+              map.geoObjects.remove(route);
+            } catch {
+              /* ignore */
+            }
             onFail();
           });
           map.geoObjects.add(route);
         };
 
         // Car route first; if no driveable road, try walking; else straight line.
-        tryRoute('auto', () => tryRoute('pedestrian', straight));
+        if (ymaps.multiRouter) {
+          tryRoute('auto', () => tryRoute('pedestrian', straight));
+          // Safety net: if routing never responds (e.g. key without Router API),
+          // draw the straight line so the map is never just dots.
+          setTimeout(straight, 6000);
+        } else {
+          straight();
+        }
       });
     };
     if (document.getElementById(id)) {
