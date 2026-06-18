@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { useTranslations } from 'next-intl';
+import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { Shell } from '@/components/layout/Shell';
 import { Link } from '@/i18n/navigation';
 import { Icon } from '@/components/ui/Icon';
@@ -7,10 +8,16 @@ import { Scenery } from '@/components/ui/Scenery';
 import { Countdown } from '@/components/ui/Countdown';
 import { Btn } from '@/components/ui/Btn';
 import { WebMap } from '@/components/tours/WebMap';
-import { getTour, langLabel, L } from '@/lib/tours';
+import { langLabel, L } from '@/lib/tours';
+import { getPublicTour } from '@/lib/db';
 
-export function generateMetadata({ params: { id, locale } }: { params: { locale: string; id: string } }): Metadata {
-  const tour = getTour(id);
+export async function generateMetadata({
+  params: { id, locale },
+}: {
+  params: { locale: string; id: string };
+}): Promise<Metadata> {
+  const tour = await getPublicTour(id);
+  if (!tour) return {};
   const title = L(tour.name, locale);
   const description = L(tour.description, locale).slice(0, 160);
   const path = `/${locale}/tours/${id}`;
@@ -25,9 +32,10 @@ export function generateMetadata({ params: { id, locale } }: { params: { locale:
   };
 }
 
-export default function TourDetailPage({ params: { id, locale } }: { params: { locale: string; id: string } }) {
-  const t = useTranslations('Detail');
-  const tour = getTour(id);
+export default async function TourDetailPage({ params: { id, locale } }: { params: { locale: string; id: string } }) {
+  const t = await getTranslations('Detail');
+  const tour = await getPublicTour(id);
+  if (!tour) notFound();
 
   return (
     <Shell>

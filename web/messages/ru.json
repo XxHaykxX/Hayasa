@@ -50,7 +50,7 @@
   },
   "Tours": {
     "title": "Наши туры",
-    "subtitle": "{count} выездов по Армении и Грузии",
+    "subtitle": "{count, plural, one {# выезд} few {# выезда} many {# выездов} other {# выездов}} по Армении и Грузии",
     "searchPlaceholder": "Поиск по турам и местам…",
     "thisMonth": "В этом месяце",
     "nextMonth": "В следующем месяце",

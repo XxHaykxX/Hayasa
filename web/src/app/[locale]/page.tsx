@@ -1,15 +1,19 @@
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { Shell } from '@/components/layout/Shell';
 import { Btn } from '@/components/ui/Btn';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { TourCard } from '@/components/tours/TourCard';
 import { GlowCard } from '@/components/ui/spotlight-card';
 import { HeroSection } from '@/components/blocks/hero-section-5';
-import { TOURS } from '@/lib/tours';
-import { CONTACT } from '@/lib/contact';
+import { getPublicTours } from '@/lib/db';
+import { getContact } from '@/lib/site-content-data';
 
-export default function HomePage() {
-  const t = useTranslations('Home');
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const t = await getTranslations('Home');
+  const tours = await getPublicTours();
+  const CONTACT = await getContact();
   const features: [IconName, string, string][] = [
     ['users', t('f1Title'), t('f1Body')],
     ['languages', t('f2Title'), t('f2Body')],
@@ -34,7 +38,7 @@ export default function HomePage() {
             </Btn>
           </div>
           <div className="grid gap-6 lg:grid-cols-3 sm:grid-cols-2 grid-cols-1">
-            {TOURS.slice(0, 3).map((tour) => (
+            {tours.slice(0, 3).map((tour) => (
               <TourCard key={tour.id} tour={tour} />
             ))}
           </div>

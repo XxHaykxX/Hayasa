@@ -44,7 +44,7 @@ export function HeroSection() {
             {/* content */}
             <div className="relative z-10 w-full mx-auto max-w-[1240px] px-5 sm:px-6 pt-[68px] pb-24">
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-1.5 font-body text-[11px] sm:text-xs font-bold text-white tracking-wide mb-5 sm:mb-6">
-                    🇦🇲 🇷🇺 🇬🇧 &nbsp;{t('badge')}
+                    🇦🇲 🇷🇺 <span className="tracking-widest">EN</span>
                 </span>
                 <h1 className="font-display text-white font-bold leading-[1.04] text-[38px] sm:text-[56px] xl:text-[72px] max-w-[760px] mb-4 sm:mb-5 [text-shadow:0_2px_24px_rgba(0,0,0,0.35)]">
                     {t('heroTitle1')}

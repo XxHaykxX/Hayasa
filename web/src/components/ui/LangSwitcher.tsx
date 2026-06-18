@@ -4,7 +4,7 @@ import { useLocale } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 
-const FLAGS: Record<string, string> = { hy: '🇦🇲', ru: '🇷🇺', en: '🇬🇧' };
+const FLAGS: Record<string, string> = { hy: '🇦🇲', ru: '🇷🇺', en: 'EN' };
 // Display order matches the kit: Armenian / Russian / English.
 const ORDER = ['hy', 'ru', 'en'] as const;
 
