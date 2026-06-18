@@ -1,3 +1,6 @@
+'use client';
+
+import type { MouseEvent } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Icon } from '@/components/ui/Icon';
@@ -8,19 +11,28 @@ import { L, type Tour } from '@/lib/tours';
 export function TourCard({ tour }: { tour: Tour }) {
   const t = useTranslations('Tours');
   const locale = useLocale();
+
+  const onMove = (e: MouseEvent<HTMLAnchorElement>) => {
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    el.style.setProperty('--my', `${e.clientY - r.top}px`);
+  };
+
   return (
     <Link
       href={`/tours/${tour.id}`}
-      className="group block cursor-pointer bg-white rounded-[14px] border border-edge overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(26,58,92,0.13)] hover:border-l-4 hover:border-l-amber"
+      onMouseMove={onMove}
+      className="spotlight-card group block cursor-pointer bg-white rounded-[14px] border border-edge overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(26,58,92,0.13)]"
     >
-      <div className="relative h-[180px]">
+      <div className="relative z-[2] h-[180px]">
         <Scenery variant={tour.variant} />
         <span className="absolute top-3 left-3 rounded-full bg-white/90 backdrop-blur px-3 py-1 font-body text-[11px] font-bold text-navy">{L(tour.tag, locale)}</span>
         <span className="absolute top-3 right-3 rounded-full px-3 py-1 font-body text-[11px] font-bold text-navy" style={{ background: '#FFE20B' }}>
           {t('seatsLeft', { count: tour.seats })}
         </span>
       </div>
-      <div className="p-5">
+      <div className="relative z-[2] p-5">
         <div className="flex items-center gap-1.5 text-muted mb-1.5">
           <Icon name="pin" size={12} color="#1A7A8A" />
           <span className="font-body text-xs font-medium">{L(tour.loc, locale)}</span>

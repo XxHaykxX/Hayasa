@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* shadcn theme tokens, tied to the Hayasa palette (primary = teal, destructive = coral). */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 210 45% 23%;
+  --card: 0 0% 100%;
+  --card-foreground: 210 45% 23%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 45% 23%;
+  --primary: 189 68% 32%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 174 40% 95%;
+  --secondary-foreground: 210 45% 23%;
+  --muted: 174 40% 95%;
+  --muted-foreground: 178 13% 48%;
+  --accent: 174 40% 95%;
+  --accent-foreground: 210 45% 23%;
+  --destructive: 6 68% 63%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 174 40% 86%;
+  --input: 174 40% 86%;
+  --ring: 189 68% 32%;
+}
+
 html,
 body {
   margin: 0;
@@ -39,4 +62,43 @@ body {
 }
 .hb-in::placeholder {
   color: #9DB6B4;
+}
+
+/* Spotlight tour card — teal glow border that tracks the pointer on hover. */
+.spotlight-card {
+  --mx: 50%;
+  --my: 0%;
+  position: relative;
+}
+/* glowing border ring */
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  padding: 1.6px;
+  background: radial-gradient(180px circle at var(--mx) var(--my), rgba(26, 122, 138, 0.95), transparent 62%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+  z-index: 3;
+}
+/* soft inner spotlight tint */
+.spotlight-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: radial-gradient(240px circle at var(--mx) var(--my), rgba(26, 122, 138, 0.10), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.spotlight-card:hover::before,
+.spotlight-card:hover::after {
+  opacity: 1;
 }

@@ -130,7 +130,16 @@
     "guestNote": "No account needed to explore.",
     "browse": "Browse tours",
     "notConfigured": "Login isn't connected yet — add Supabase credentials to enable accounts.",
-    "errEmail": "Enter a valid email"
+    "errEmail": "Enter a valid email",
+    "welcome": "Welcome back",
+    "password": "Password",
+    "emailPlaceholder": "Enter your email address",
+    "passwordPlaceholder": "Enter your password",
+    "signIn": "Sign in",
+    "forgot": "Forgot password?",
+    "brandTagline": "Group tours across Armenia & Georgia — sign in to manage your bookings.",
+    "errCreds": "Invalid email or password.",
+    "resetSent": "Password reset link sent to your email."
   },
   "System": {
     "notFoundTitle": "Page not found",

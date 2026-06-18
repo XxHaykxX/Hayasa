@@ -1,10 +1,10 @@
 import { useTranslations } from 'next-intl';
 import { Shell } from '@/components/layout/Shell';
-import { Scenery } from '@/components/ui/Scenery';
-import { Countdown } from '@/components/ui/Countdown';
 import { Btn } from '@/components/ui/Btn';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { TourCard } from '@/components/tours/TourCard';
+import { GlowCard } from '@/components/ui/spotlight-card';
+import { HeroSection } from '@/components/blocks/hero-section-5';
 import { TOURS } from '@/lib/tours';
 import { CONTACT } from '@/lib/contact';
 
@@ -19,32 +19,7 @@ export default function HomePage() {
   return (
     <Shell>
       {/* hero */}
-      <section className="relative h-[600px] overflow-hidden">
-        <Scenery variant={0} />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(26,58,92,0.55) 0%, rgba(26,58,92,0.15) 55%, transparent 100%)' }} />
-        <div className="relative mx-auto max-w-[1200px] px-6 h-full flex flex-col justify-center">
-          <div className="max-w-[620px]">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-1.5 font-body text-xs font-bold text-white tracking-wide mb-5">
-              🇦🇲 🇷🇺 🇬🇧 &nbsp;{t('badge')}
-            </span>
-            <h1 className="font-display text-white font-bold leading-[1.02] text-[58px] mb-4">
-              {t('heroTitle1')}
-              <br />
-              {t('heroTitle2')}
-            </h1>
-            <p className="font-body text-white/90 text-lg leading-relaxed mb-7 max-w-[460px]">{t('heroSubtitle')}</p>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <Btn variant="amber" size="lg" icon="arrowRight" href="/tours">
-                {t('viewTours')}
-              </Btn>
-              <div>
-                <div className="font-body text-[11px] font-bold tracking-widest text-white/70 mb-2">{t('nextDeparture')}</div>
-                <Countdown target={TOURS[0].target} size="xl" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSection />
 
       {/* upcoming tours */}
       <section className="bg-aqua">
@@ -67,21 +42,23 @@ export default function HomePage() {
       </section>
 
       {/* why hayasa */}
-      <section className="bg-white">
+      <section className="bg-navy">
         <div className="mx-auto max-w-[1200px] px-6 py-16">
           <div className="text-center mb-12">
-            <div className="font-body text-xs font-bold tracking-widest text-teal mb-2">{t('whyKicker')}</div>
-            <h2 className="font-display text-[38px] font-bold text-navy leading-none">{t('whyTitle')}</h2>
+            <div className="font-body text-xs font-bold tracking-widest text-white/50 mb-2">{t('whyKicker')}</div>
+            <h2 className="font-display text-[38px] font-bold text-white leading-none">{t('whyTitle')}</h2>
           </div>
           <div className="grid gap-8 md:grid-cols-3 grid-cols-1">
             {features.map(([ic, title, desc]) => (
-              <div key={title} className="text-center px-4">
-                <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-aqua flex items-center justify-center">
-                  <Icon name={ic} size={26} color="#1A7A8A" />
+              <GlowCard key={title} glowColor="teal" customSize className="h-full p-7 text-center">
+                <div className="flex flex-col items-center">
+                  <div className="mb-5 w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center">
+                    <Icon name={ic} size={26} color="#7FD4CE" />
+                  </div>
+                  <h3 className="font-display text-2xl font-bold text-white mb-2">{title}</h3>
+                  <p className="font-body text-[15px] text-white/70 leading-relaxed">{desc}</p>
                 </div>
-                <h3 className="font-display text-2xl font-bold text-navy mb-2">{title}</h3>
-                <p className="font-body text-[15px] text-muted leading-relaxed">{desc}</p>
-              </div>
+              </GlowCard>
             ))}
           </div>
         </div>
