@@ -1,0 +1,51 @@
+<!-- @dsCard group="Website" viewport="1280x860" name="Hayasa Tours — Website" subtitle="Responsive marketing + booking site · 6 pages" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hayasa Tours — Travel Website</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          navy: '#1A3A5C', muted: '#6A8A88', aqua: '#EEF9F7', mist: '#F0F4F3',
+          edge: '#D0E8E4', amber: '#E2685E', 'amber-dark': '#C9543F', yellow: '#FFE20B',
+          teal: '#1A7A8A', success: '#2A9D6A',
+        },
+        fontFamily: {
+          display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+          body: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #fff; }
+  ::selection { background: rgba(26,122,138,0.18); }
+  .hb-in {
+    width: 100%; background: #fff; border: 1px solid #D0E8E4; border-radius: 12px;
+    padding: 12px 14px; color: #1A3A5C; font-family: 'Inter', sans-serif; font-size: 15px; outline: none;
+  }
+  .hb-in:focus { border-color: #1A7A8A; }
+  .hb-in::placeholder { color: #9DB6B4; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="ui.jsx"></script>
+<script type="text/babel" src="pages.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

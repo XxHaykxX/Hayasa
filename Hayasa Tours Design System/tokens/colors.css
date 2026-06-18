@@ -1,0 +1,31 @@
+/* Hayasa Tours — Color tokens. Light mode only. "Lagoon Bungalow." */
+:root {
+  /* Base surfaces */
+  --bg: #FFFFFF;          /* page background */
+  --surface: #FFFFFF;     /* cards */
+  --surface-2: #F0F4F3;   /* nested / raised fields */
+  --section: #EEF9F7;     /* alternating section bg (aqua) */
+  --border: #D0E8E4;      /* hairlines, dividers (soft aqua) */
+  --border-strong: #B7D8D2;
+
+  /* Accents */
+  --primary: #E2685E;     /* coral — CTA buttons */
+  --primary-press: #C9543F; /* hover/pressed */
+  --success: #2A9D6A;     /* confirmed */
+  --teal: #1A7A8A;        /* links, icons, interactive */
+  --highlight: #FFE20B;   /* badges, chips, countdown digits */
+  --danger: #D43A3A;      /* cancelled / errors */
+
+  /* Text */
+  --text: #1A3A5C;        /* primary text — deep blue */
+  --text-dim: #6A8A88;    /* secondary — muted teal-gray */
+  --text-faint: #9DB6B4;  /* tertiary / meta */
+  --on-primary: #FFFFFF;  /* text on coral buttons */
+
+  /* Deep panels (footer / profile header) */
+  --deep: #1A3A5C;
+
+  /* Soft shadows (no glow — light theme) */
+  --shadow-card: 0 6px 20px rgba(26, 58, 92, 0.08);
+  --shadow-raised: 0 2px 8px rgba(26, 58, 92, 0.05);
+}

@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #fff;
+  color: #1A3A5C;
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+::selection {
+  background: rgba(26, 122, 138, 0.18);
+}
+
+/* Shared text input style (ported from website kit `.hb-in`). */
+.hb-in {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #D0E8E4;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #1A3A5C;
+  font-family: var(--font-body), sans-serif;
+  font-size: 15px;
+  outline: none;
+}
+.hb-in:focus {
+  border-color: #1A7A8A;
+}
+.hb-in::placeholder {
+  color: #9DB6B4;
+}

@@ -1,0 +1,16 @@
+/* Hayasa Tours — Spacing & elevation tokens. 4px base grid. */
+:root {
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  --shadow-card: 0 6px 20px rgba(26, 58, 92, 0.08);
+  --shadow-raised: 0 2px 8px rgba(26, 58, 92, 0.05);
+  --screen-pad: 20px;
+}

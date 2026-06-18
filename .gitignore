@@ -1,0 +1,15 @@
+# Local tooling / secrets — never commit
+.claude/
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+.env*.local
+**/.env*.local
+*.log
+npm-debug.log*
+.DS_Store
+*.pem
+
+# Local Playwright MCP artifacts
+**/.playwright-mcp/
