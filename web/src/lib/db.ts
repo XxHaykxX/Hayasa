@@ -12,7 +12,7 @@ export type NewBooking = {
   notes?: string;
 };
 
-export type BookingResult = { ok: true; persisted: boolean } | { ok: false; error: string };
+export type BookingResult = { ok: true; persisted: boolean; id?: string } | { ok: false; error: string };
 
 /**
  * Create a booking request. Writes to Supabase when configured; otherwise
@@ -32,23 +32,27 @@ export async function createBooking(input: NewBooking): Promise<BookingResult> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const { error } = await supabase.from('bookings').insert({
-      tour_id: isUuid ? input.tourId : null,
-      user_id: user?.id ?? null,
-      seats: input.seats,
-      full_name: input.fullName,
-      phone: input.phone,
-      notes,
-      status: 'pending',
-      source: 'web',
-    });
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert({
+        tour_id: isUuid ? input.tourId : null,
+        user_id: user?.id ?? null,
+        seats: input.seats,
+        full_name: input.fullName,
+        phone: input.phone,
+        notes,
+        status: 'pending',
+        source: 'web',
+      })
+      .select('id')
+      .single();
     // Bookings are confirmed offline, so a DB failure (e.g. schema not applied
     // yet) must never block the customer — degrade to an offline request.
     if (error) {
       console.warn('[booking] Supabase insert failed, treating as offline request:', error.message);
       return { ok: true, persisted: false };
     }
-    return { ok: true, persisted: true };
+    return { ok: true, persisted: true, id: data?.id };
   } catch (e) {
     console.warn('[booking] Supabase unreachable, treating as offline request:', e);
     return { ok: true, persisted: false };

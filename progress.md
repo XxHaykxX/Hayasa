@@ -90,7 +90,7 @@
 - [x] **Фото на витрине:** `cover_image_url` + фото остановок (`stop_photos`) показываются на `/tours`, детали (hero+миниатюры+роадмап), бронировании; фолбэк на `Scenery` если фото нет. Типы `Tour.cover`/`Stop.photos`, маппинг в `lib/db.ts`.
 - [x] **Аккаунты:** бронь привязывается к `user_id` залогиненного; `/my-tours` и `/profile` читают реальные брони/профиль из БД (`lib/my-bookings.ts`), профиль редактируется (upsert). Ключи i18n firstName/lastName/save/loginPrompt.
 - [x] **Безопасность:** RLS вставки броней ужесточена (`status=pending`, `source in web/app`, `seats 1..20`, `user_id null|own`); снят листинг бакета `tour-photos`. Остаются (твоё, dashboard): leaked-password protection.
-- [ ] **Уведомления о брони** (admin + клиент) — нужны креды (SMTP/Resend или Telegram bot token). Не сделано.
+- [x] **Уведомления о брони админу** — механизм готов: `lib/notify.ts` (Telegram) + роут `/api/notify-booking` (сверяет бронь по id + свежесть) + вызов из `BookingClient`. **Активируется** при `TELEGRAM_BOT_TOKEN`+`TELEGRAM_CHAT_ID` в env (без них — тихий no-op). Уведомление клиенту (email) — отдельно, нужен Resend/SMTP.
 
 ## Часть 11. Прод-готовность / разбор слабых мест (2026-06-19)
 - [x] **Овербукинг:** триггер `sync_booked_seats` ведёт `tours.booked_seats` из реальных броней; ручное поле убрано из формы.
@@ -107,11 +107,11 @@
 ### Сверка (verified 2026-06-19)
 БД: tours=6, stops=18, bookings=0, site_content=6, триггер мест=1, custom-индексов=8, admin_flag=true, bucket_limit=5 МБ, RLS-политик(public)=14.
 Код/репо: 12 файлов миграций; `lib/format.ts`/`my-bookings.ts`/`site-content-data.ts`/`next.config.mjs` на месте.
-Git main: `36cfc6c` (всё запушено). E2E 12/12 PASS после Tailwind-переписки, 0 console errors.
+Git main: всё закоммичено и запушено. E2E 12/12 PASS после Tailwind-переписки, 0 console errors.
 
 ## Нужно от пользователя (осталось)
 - [ ] Реальный контент: настоящие туры/цены/контакты через `/admin`.
-- [ ] Уведомления о брони: дать Telegram bot token или Resend/SMTP ключ.
+- [ ] Активировать уведомления: добавить `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` в `web/.env.local` (механизм уже в коде).
 - [ ] Leaked-password protection — тумблер в Supabase Dashboard.
 - [ ] Хостинг (Vercel) + домен.
 - [!] Ротация засвеченных секретов: `service_role` ключ, пароль админа, Magic MCP ключ.

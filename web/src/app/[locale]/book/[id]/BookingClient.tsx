@@ -60,6 +60,14 @@ export default function BookingClient({ tour }: { tour: Tour }) {
     if (res.ok) {
       setPersisted(res.persisted);
       setSubmitted(true);
+      // Best-effort admin alert (no-op unless Telegram is configured server-side).
+      if (res.id) {
+        fetch('/api/notify-booking', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ bookingId: res.id }),
+        }).catch(() => {});
+      }
     } else {
       setSubmitError(t('errSubmit'));
     }
