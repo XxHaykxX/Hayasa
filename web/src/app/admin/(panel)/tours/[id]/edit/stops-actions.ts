@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/admin-auth';
 import { createServiceSupabase } from '@/lib/supabase-server';
 import { stopSchema } from '@/lib/admin-stops';
+import { validateImage } from '@/lib/admin-tours';
 
 export type StopActionState = { ok: boolean; error?: string };
 
@@ -37,7 +38,10 @@ function toStopRow(input: ReturnType<typeof stopSchema.parse>) {
   };
 }
 
-const revalidate = (tourId: string) => revalidatePath(`/admin/tours/${tourId}/edit`);
+const revalidate = (tourId: string) => {
+  revalidatePath(`/admin/tours/${tourId}/edit`);
+  revalidatePath('/[locale]/tours/[id]', 'page'); // public detail shows stop photos
+};
 
 export async function createStop(tourId: string, _prev: StopActionState, formData: FormData): Promise<StopActionState> {
   await requireAdmin();
@@ -87,9 +91,11 @@ export async function addStopPhoto(
   if (!file || typeof file === 'string' || !(file as File).size) {
     return { ok: false, error: 'Выберите файл.' };
   }
+  const f = file as File;
+  const invalid = validateImage(f);
+  if (invalid) return { ok: false, error: invalid };
   const db = createServiceSupabase();
   if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
-  const f = file as File;
   const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
   const path = `stops/${stopId}/${crypto.randomUUID()}.${ext}`;
   const { error: upErr } = await db.storage

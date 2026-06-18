@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { Shell } from '@/components/layout/Shell';
 import { Icon } from '@/components/ui/Icon';
@@ -183,8 +184,7 @@ export default function ProfilePage() {
               <div key={b.bookingId} className="flex items-center gap-4 bg-white rounded-xl border border-edge px-4 py-3">
                 <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-none">
                   {b.cover ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={b.cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    <Image src={b.cover} alt="" fill sizes="56px" className="object-cover" />
                   ) : (
                     <Scenery variant={b.variant} sun={false} />
                   )}

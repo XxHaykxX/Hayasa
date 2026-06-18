@@ -1,6 +1,7 @@
 'use client';
 
 import type { MouseEvent } from 'react';
+import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Icon } from '@/components/ui/Icon';
@@ -27,8 +28,7 @@ export function TourCard({ tour }: { tour: Tour }) {
     >
       <div className="relative z-[2] h-[180px]">
         {tour.cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={tour.cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <Image src={tour.cover} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
         ) : (
           <Scenery variant={tour.variant} />
         )}

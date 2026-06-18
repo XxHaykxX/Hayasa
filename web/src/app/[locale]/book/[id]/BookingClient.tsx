@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { Shell } from '@/components/layout/Shell';
 import { Link } from '@/i18n/navigation';
@@ -25,6 +26,7 @@ export default function BookingClient({ tour }: { tour: Tour }) {
   const [errors, setErrors] = useState<Errors>({});
   const [sending, setSending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [persisted, setPersisted] = useState(true);
   const [submitError, setSubmitError] = useState('');
 
   const unit = parseInt(tour.price.replace(/\s/g, ''), 10);
@@ -56,6 +58,7 @@ export default function BookingClient({ tour }: { tour: Tour }) {
     });
     setSending(false);
     if (res.ok) {
+      setPersisted(res.persisted);
       setSubmitted(true);
     } else {
       setSubmitError(t('errSubmit'));
@@ -71,9 +74,14 @@ export default function BookingClient({ tour }: { tour: Tour }) {
               <Icon name="check" size={32} color="#fff" />
             </div>
             <h1 className="font-display text-[32px] font-bold text-navy leading-tight mb-3">{t('successTitle')}</h1>
-            <p className="font-body text-[15px] text-muted leading-relaxed mb-8">
+            <p className="font-body text-[15px] text-muted leading-relaxed mb-4">
               {t('successBody', { name: firstName, phone: `+374 ${phone}`, seats, tour: tourName })}
             </p>
+            {!persisted && (
+              <p className="font-body text-[13px] text-amber-dark leading-snug mb-8 max-w-[420px] mx-auto">
+                {t('offlineNote')}
+              </p>
+            )}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Btn variant="amber" size="lg" icon="chevronRight" href="/my-tours">
                 {t('viewMyTours')}
@@ -136,8 +144,7 @@ export default function BookingClient({ tour }: { tour: Tour }) {
           <aside className="lg:sticky lg:top-[88px] rounded-[14px] border border-edge bg-white shadow-[0_10px_30px_rgba(26,58,92,0.1)] overflow-hidden">
             <div className="relative h-[120px]">
               {tour.cover ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={tour.cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                <Image src={tour.cover} alt="" fill sizes="380px" className="object-cover" />
               ) : (
                 <Scenery variant={tour.variant} />
               )}

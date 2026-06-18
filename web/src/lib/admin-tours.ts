@@ -80,3 +80,14 @@ export const tourSchema = z.object({
 });
 
 export type TourInput = z.infer<typeof tourSchema>;
+
+// Shared image-upload limits (mirrors the tour-photos bucket config).
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+
+/** Returns an error message for an invalid image file, or null when ok. */
+export function validateImage(f: File): string | null {
+  if (f.size > MAX_IMAGE_BYTES) return 'Файл больше 5 МБ.';
+  if (f.type && !ALLOWED_IMAGE_TYPES.includes(f.type)) return 'Допустимы только JPG, PNG, WebP, AVIF.';
+  return null;
+}

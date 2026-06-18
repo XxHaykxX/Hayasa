@@ -2,8 +2,7 @@
 // Browser-side helper for /my-tours and /profile.
 import { getSupabase } from './supabase';
 import type { Localized, BookingStatus } from './tours';
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+import { formatTourDate, loc } from './format';
 
 export type MyBooking = {
   bookingId: string;
@@ -33,12 +32,6 @@ type Row = {
     cover_image_url: string | null;
   } | null;
 };
-
-const loc = (hy: string | null, ru: string | null, en: string | null, fb: string): Localized => ({
-  hy: hy || fb,
-  ru: ru || fb,
-  en: en || fb,
-});
 
 /** Returns the current user's bookings, or null when not logged in / no client. */
 export async function getMyBookings(): Promise<MyBooking[] | null> {
@@ -72,7 +65,7 @@ export async function getMyBookings(): Promise<MyBooking[] | null> {
         when: target >= now ? 'upcoming' : 'past',
         name: { hy: tt.title_hy, ru: tt.title_ru, en: tt.title_en },
         loc: loc(tt.location_hy, tt.location_ru, tt.location_en, ''),
-        date: `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`,
+        date: formatTourDate(tt.date_start),
         target,
         cover: tt.cover_image_url ?? null,
         variant: i % 6,

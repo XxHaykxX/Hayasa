@@ -8,7 +8,7 @@ import { HeroSection } from '@/components/blocks/hero-section-5';
 import { getPublicTours } from '@/lib/db';
 import { getContact } from '@/lib/site-content-data';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300; // ISR; admin tour edits invalidate via revalidatePath
 
 export default async function HomePage() {
   const t = await getTranslations('Home');

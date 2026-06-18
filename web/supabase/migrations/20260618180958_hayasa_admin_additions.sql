@@ -1,0 +1,56 @@
+-- Hayasa admin additions
+alter table public.profiles
+  add column if not exists is_admin boolean not null default false;
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id) values (new.id)
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer set search_path = public
+stable
+as $$
+  select coalesce((select is_admin from public.profiles where id = auth.uid()), false);
+$$;
+
+create policy "admin all tours" on public.tours
+  for all using (public.is_admin()) with check (public.is_admin());
+create policy "admin all stops" on public.stops
+  for all using (public.is_admin()) with check (public.is_admin());
+create policy "admin all stop_photos" on public.stop_photos
+  for all using (public.is_admin()) with check (public.is_admin());
+create policy "admin all bookings" on public.bookings
+  for all using (public.is_admin()) with check (public.is_admin());
+create policy "admin read profiles" on public.profiles
+  for select using (public.is_admin());
+
+insert into storage.buckets (id, name, public)
+  values ('tour-photos', 'tour-photos', true)
+  on conflict (id) do nothing;
+
+create policy "tour-photos public read" on storage.objects
+  for select using (bucket_id = 'tour-photos');
+create policy "tour-photos admin write" on storage.objects
+  for insert with check (bucket_id = 'tour-photos' and public.is_admin());
+create policy "tour-photos admin update" on storage.objects
+  for update using (bucket_id = 'tour-photos' and public.is_admin());
+create policy "tour-photos admin delete" on storage.objects
+  for delete using (bucket_id = 'tour-photos' and public.is_admin());
+
+-- Trigger-only function: not meant to be called via the API.
+revoke all on function public.handle_new_user() from anon, authenticated, public;

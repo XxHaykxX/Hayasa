@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { Shell } from '@/components/layout/Shell';
 import { Link } from '@/i18n/navigation';
@@ -79,8 +80,7 @@ export default function MyToursPage() {
             <div key={b.bookingId} className="flex gap-5 bg-white rounded-[14px] border border-edge overflow-hidden hover:shadow-[0_12px_30px_rgba(26,58,92,0.1)] transition-shadow">
               <div className="relative w-[200px] flex-none">
                 {b.cover ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={b.cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <Image src={b.cover} alt="" fill sizes="200px" className="object-cover" />
                 ) : (
                   <Scenery variant={b.variant} />
                 )}

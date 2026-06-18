@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Shell } from '@/components/layout/Shell';
@@ -10,6 +11,8 @@ import { Btn } from '@/components/ui/Btn';
 import { WebMap } from '@/components/tours/WebMap';
 import { langLabel, L } from '@/lib/tours';
 import { getPublicTour } from '@/lib/db';
+
+export const revalidate = 300;
 
 export async function generateMetadata({
   params: { id, locale },
@@ -53,8 +56,7 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
           <div>
             <div className="relative h-[360px] rounded-[14px] overflow-hidden mb-3">
               {heroImg ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={heroImg} alt={L(tour.name, locale)} className="absolute inset-0 w-full h-full object-cover" />
+                <Image src={heroImg} alt={L(tour.name, locale)} fill priority sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" />
               ) : (
                 <Scenery variant={tour.variant} />
               )}
@@ -63,8 +65,7 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
               {gallery.length > 1
                 ? gallery.slice(0, 4).map((img, i) => (
                     <div key={i} className={`relative h-[72px] flex-1 rounded-lg overflow-hidden cursor-pointer ${i === 0 ? 'ring-2 ring-amber' : 'opacity-70 hover:opacity-100'}`}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      <Image src={img} alt="" fill sizes="160px" className="object-cover" />
                     </div>
                   ))
                 : [tour.variant, (tour.variant + 1) % 6, (tour.variant + 2) % 6, (tour.variant + 3) % 6].map((v, i) => (
@@ -108,8 +109,7 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
                       {s.photos && s.photos.length > 0
                         ? s.photos.slice(0, 3).map((img, p) => (
                             <div key={p} className="relative w-20 h-14 rounded-lg overflow-hidden">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                              <Image src={img} alt="" fill sizes="80px" className="object-cover" />
                             </div>
                           ))
                         : [0, 1, 2].map((p) => (

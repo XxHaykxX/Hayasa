@@ -2,6 +2,7 @@
 // mock tours in `lib/tours.ts`. This layer is the seam where the DB plugs in.
 import { getSupabase, isSupabaseConfigured } from './supabase';
 import { TOURS, type Tour, type Localized, type TourLang } from './tours';
+import { formatTourDate, loc } from './format';
 
 export type NewBooking = {
   tourId: string;
@@ -58,8 +59,6 @@ export { isSupabaseConfigured };
 
 // ───────────────────────── public tour reads ─────────────────────────
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 // "18500" -> "18 500" (regular space groups, matches the mock formatting).
 const priceFmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
@@ -86,12 +85,6 @@ function langsFromColumn(language: string): TourLang[] {
       return ['AM', 'RU', 'EN'];
   }
 }
-
-const loc = (hy: string | null, ru: string | null, en: string | null, fallback: string): Localized => ({
-  hy: hy || fallback,
-  ru: ru || fallback,
-  en: en || fallback,
-});
 
 type DbStop = {
   order_index: number;
@@ -130,7 +123,7 @@ type DbTour = {
 
 function mapTour(row: DbTour, variant: number): Tour {
   const d = new Date(row.date_start);
-  const dateStr = `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+  const dateStr = formatTourDate(row.date_start);
   const stops = (row.stops ?? [])
     .slice()
     .sort((a, b) => a.order_index - b.order_index)

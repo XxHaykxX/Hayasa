@@ -178,16 +178,12 @@ export default function TourForm({ action, initial }: { action: Action; initial?
               required
             />
           </div>
-          <div>
-            <label style={label}>Занято мест</label>
-            <input
-              type="number"
-              name="booked_seats"
-              className="hb-in"
-              min={0}
-              defaultValue={initial?.booked_seats ?? 0}
-            />
-          </div>
+          {initial && (
+            <div>
+              <label style={label}>Занято мест (авто)</label>
+              <input type="number" className="hb-in" value={initial.booked_seats} disabled readOnly />
+            </div>
+          )}
         </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, fontSize: 14 }}>
           <input type="checkbox" name="is_active" defaultChecked={initial?.is_active ?? true} />
