@@ -115,7 +115,11 @@
     "english": "Английский",
     "bookingHistory": "История бронирований",
     "needHelp": "Нужна помощь?",
-    "signOut": "Выйти"
+    "signOut": "Выйти",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "save": "Сохранить",
+    "loginPrompt": "Войдите, чтобы увидеть профиль"
   },
   "Auth": {
     "title": "Вход",

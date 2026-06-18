@@ -26,7 +26,12 @@ export function TourCard({ tour }: { tour: Tour }) {
       className="spotlight-card group block cursor-pointer bg-white rounded-[14px] border border-edge overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(26,58,92,0.13)]"
     >
       <div className="relative z-[2] h-[180px]">
-        <Scenery variant={tour.variant} />
+        {tour.cover ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={tour.cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <Scenery variant={tour.variant} />
+        )}
         <span className="absolute top-3 left-3 rounded-full bg-white/90 backdrop-blur px-3 py-1 font-body text-[11px] font-bold text-navy">{L(tour.tag, locale)}</span>
         <span className="absolute top-3 right-3 rounded-full px-3 py-1 font-body text-[11px] font-bold text-navy" style={{ background: '#FFE20B' }}>
           {t('seatsLeft', { count: tour.seats })}

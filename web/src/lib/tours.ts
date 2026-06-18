@@ -12,6 +12,7 @@ export type Stop = {
   desc: Localized;
   lat: number;
   lng: number;
+  photos?: string[];
 };
 
 export type Tour = {
@@ -30,6 +31,7 @@ export type Tour = {
   tag: Localized;
   description: Localized;
   stops: Stop[];
+  cover?: string | null;
 };
 
 const at = (iso: string) => new Date(iso).getTime();

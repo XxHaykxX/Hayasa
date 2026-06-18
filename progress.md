@@ -86,6 +86,12 @@
 
 ---
 
+## Часть 10. Пост-MVP (сделано автономно 2026-06-19)
+- [x] **Фото на витрине:** `cover_image_url` + фото остановок (`stop_photos`) показываются на `/tours`, детали (hero+миниатюры+роадмап), бронировании; фолбэк на `Scenery` если фото нет. Типы `Tour.cover`/`Stop.photos`, маппинг в `lib/db.ts`.
+- [x] **Аккаунты:** бронь привязывается к `user_id` залогиненного; `/my-tours` и `/profile` читают реальные брони/профиль из БД (`lib/my-bookings.ts`), профиль редактируется (upsert). Ключи i18n firstName/lastName/save/loginPrompt.
+- [x] **Безопасность:** RLS вставки броней ужесточена (`status=pending`, `source in web/app`, `seats 1..20`, `user_id null|own`); снят листинг бакета `tour-photos`. Остаются (твоё, dashboard): leaked-password protection.
+- [ ] **Уведомления о брони** (admin + клиент) — нужны креды (SMTP/Resend или Telegram bot token). Не сделано.
+
 ## Порядок выполнения
 1. Часть 1 (схема + admin SQL + бакет) — частично требует действий пользователя.
 2. Часть 2 (авторизация) и Часть 3 (каркас) — параллельно после env.

@@ -135,7 +135,12 @@ export default function BookingClient({ tour }: { tour: Tour }) {
           {/* summary */}
           <aside className="lg:sticky lg:top-[88px] rounded-[14px] border border-edge bg-white shadow-[0_10px_30px_rgba(26,58,92,0.1)] overflow-hidden">
             <div className="relative h-[120px]">
-              <Scenery variant={tour.variant} />
+              {tour.cover ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={tour.cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <Scenery variant={tour.variant} />
+              )}
             </div>
             <div className="p-6">
               <h3 className="font-display text-xl font-bold text-navy leading-tight mb-1">{tourName}</h3>

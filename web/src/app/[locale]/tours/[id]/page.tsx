@@ -37,6 +37,10 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
   const tour = await getPublicTour(id);
   if (!tour) notFound();
 
+  // Real photos when present (cover + stop photos), else fall back to Scenery art.
+  const gallery = [tour.cover, ...tour.stops.flatMap((s) => s.photos ?? [])].filter(Boolean) as string[];
+  const heroImg = gallery[0] ?? null;
+
   return (
     <Shell>
       <div className="mx-auto max-w-[1200px] px-6 py-8 pb-28 lg:pb-8">
@@ -48,14 +52,26 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
           {/* left */}
           <div>
             <div className="relative h-[360px] rounded-[14px] overflow-hidden mb-3">
-              <Scenery variant={tour.variant} />
+              {heroImg ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={heroImg} alt={L(tour.name, locale)} className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <Scenery variant={tour.variant} />
+              )}
             </div>
             <div className="flex gap-3 mb-8">
-              {[tour.variant, (tour.variant + 1) % 6, (tour.variant + 2) % 6, (tour.variant + 3) % 6].map((v, i) => (
-                <div key={i} className={`relative h-[72px] flex-1 rounded-lg overflow-hidden cursor-pointer ${i === 0 ? 'ring-2 ring-amber' : 'opacity-70 hover:opacity-100'}`}>
-                  <Scenery variant={v} sun={false} />
-                </div>
-              ))}
+              {gallery.length > 1
+                ? gallery.slice(0, 4).map((img, i) => (
+                    <div key={i} className={`relative h-[72px] flex-1 rounded-lg overflow-hidden cursor-pointer ${i === 0 ? 'ring-2 ring-amber' : 'opacity-70 hover:opacity-100'}`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    </div>
+                  ))
+                : [tour.variant, (tour.variant + 1) % 6, (tour.variant + 2) % 6, (tour.variant + 3) % 6].map((v, i) => (
+                    <div key={i} className={`relative h-[72px] flex-1 rounded-lg overflow-hidden cursor-pointer ${i === 0 ? 'ring-2 ring-amber' : 'opacity-70 hover:opacity-100'}`}>
+                      <Scenery variant={v} sun={false} />
+                    </div>
+                  ))}
             </div>
 
             <div className="flex items-center gap-3 mb-3">
@@ -89,11 +105,18 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
                     <h3 className="font-display text-2xl font-bold text-navy leading-tight mb-1.5">{L(s.name, locale)}</h3>
                     <p className="font-body text-[15px] text-muted leading-relaxed mb-3 max-w-[520px]">{L(s.desc, locale)}</p>
                     <div className="flex gap-2.5">
-                      {[0, 1, 2].map((p) => (
-                        <div key={p} className="relative w-20 h-14 rounded-lg overflow-hidden">
-                          <Scenery variant={(tour.variant + i + p) % 6} sun={false} />
-                        </div>
-                      ))}
+                      {s.photos && s.photos.length > 0
+                        ? s.photos.slice(0, 3).map((img, p) => (
+                            <div key={p} className="relative w-20 h-14 rounded-lg overflow-hidden">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                            </div>
+                          ))
+                        : [0, 1, 2].map((p) => (
+                            <div key={p} className="relative w-20 h-14 rounded-lg overflow-hidden">
+                              <Scenery variant={(tour.variant + i + p) % 6} sun={false} />
+                            </div>
+                          ))}
                     </div>
                   </div>
                 </div>

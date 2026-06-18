@@ -115,7 +115,11 @@
     "english": "English",
     "bookingHistory": "Booking history",
     "needHelp": "Need help?",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "save": "Save",
+    "loginPrompt": "Log in to see your profile"
   },
   "Auth": {
     "title": "Sign in",

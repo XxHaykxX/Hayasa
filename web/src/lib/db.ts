@@ -27,8 +27,13 @@ export async function createBooking(input: NewBooking): Promise<BookingResult> {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.tourId);
   const notes = [input.notes, isUuid ? null : `tour: ${input.tourId}`].filter(Boolean).join(' · ') || null;
   try {
+    // Attach the logged-in user so the booking shows up in their My Tours.
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const { error } = await supabase.from('bookings').insert({
       tour_id: isUuid ? input.tourId : null,
+      user_id: user?.id ?? null,
       seats: input.seats,
       full_name: input.fullName,
       phone: input.phone,
@@ -98,6 +103,7 @@ type DbStop = {
   description_en: string | null;
   latitude: number | null;
   longitude: number | null;
+  stop_photos?: { photo_url: string; order_index: number }[] | null;
 };
 
 type DbTour = {
@@ -133,6 +139,10 @@ function mapTour(row: DbTour, variant: number): Tour {
       desc: loc(s.description_hy, s.description_ru, s.description_en, ''),
       lat: s.latitude ?? 0,
       lng: s.longitude ?? 0,
+      photos: (s.stop_photos ?? [])
+        .slice()
+        .sort((a, b) => a.order_index - b.order_index)
+        .map((p) => p.photo_url),
     }));
 
   return {
@@ -151,11 +161,12 @@ function mapTour(row: DbTour, variant: number): Tour {
     tag: CATEGORY_TAG[row.category ?? 'classic'] ?? CATEGORY_TAG.classic,
     description: loc(row.description_hy, row.description_ru, row.description_en, ''),
     stops,
+    cover: row.cover_image_url ?? null,
   };
 }
 
 const TOUR_SELECT =
-  'id,title_hy,title_ru,title_en,description_hy,description_ru,description_en,location_hy,location_ru,location_en,category,country,date_start,price,max_seats,booked_seats,language,cover_image_url,stops(order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude)';
+  'id,title_hy,title_ru,title_en,description_hy,description_ru,description_en,location_hy,location_ru,location_en,category,country,date_start,price,max_seats,booked_seats,language,cover_image_url,stops(order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,stop_photos(photo_url,order_index))';
 
 /** All active tours for the public site. Falls back to mock TOURS. */
 export async function getPublicTours(): Promise<Tour[]> {
