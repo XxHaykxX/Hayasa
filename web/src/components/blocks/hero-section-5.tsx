@@ -11,7 +11,7 @@ import { Typewriter } from '@/components/ui/typewriter'
 import { InfiniteSlider } from '@/components/ui/infinite-slider'
 import { TOURS, L } from '@/lib/tours'
 
-export function HeroSection() {
+export function HeroSection({ title, subtitle }: { title?: string; subtitle?: string } = {}) {
     const t = useTranslations('Home')
     const tn = useTranslations('Nav')
     const locale = useLocale()
@@ -47,7 +47,7 @@ export function HeroSection() {
                     🇦🇲 🇷🇺 <span className="tracking-widest">EN</span>
                 </span>
                 <h1 className="font-display text-white font-bold leading-[1.04] text-[38px] sm:text-[56px] xl:text-[72px] max-w-[760px] mb-4 sm:mb-5 [text-shadow:0_2px_24px_rgba(0,0,0,0.35)]">
-                    {t('heroTitle1')}
+                    {title || t('heroTitle1')}
                     <br />
                     <Typewriter
                         text={places}
@@ -60,7 +60,7 @@ export function HeroSection() {
                     />
                 </h1>
                 <p className="font-body text-white/90 text-base sm:text-lg leading-relaxed max-w-[460px] mb-7 sm:mb-9 [text-shadow:0_1px_12px_rgba(0,0,0,0.3)]">
-                    {t('heroSubtitle')}
+                    {subtitle || t('heroSubtitle')}
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                     <Btn variant="amber" size="lg" icon="arrowRight" href="/tours" className="justify-center">

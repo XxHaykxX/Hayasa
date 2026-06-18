@@ -6,14 +6,15 @@ import { TourCard } from '@/components/tours/TourCard';
 import { GlowCard } from '@/components/ui/spotlight-card';
 import { HeroSection } from '@/components/blocks/hero-section-5';
 import { getPublicTours } from '@/lib/db';
-import { getContact } from '@/lib/site-content-data';
+import { getContact, getContentLocalized } from '@/lib/site-content-data';
 
 export const revalidate = 300; // ISR; admin tour edits invalidate via revalidatePath
 
-export default async function HomePage() {
+export default async function HomePage({ params: { locale } }: { params: { locale: string } }) {
   const t = await getTranslations('Home');
   const tours = await getPublicTours();
   const CONTACT = await getContact();
+  const heroContent = await getContentLocalized(locale);
   const features: [IconName, string, string][] = [
     ['users', t('f1Title'), t('f1Body')],
     ['languages', t('f2Title'), t('f2Body')],
@@ -23,7 +24,7 @@ export default async function HomePage() {
   return (
     <Shell>
       {/* hero */}
-      <HeroSection />
+      <HeroSection title={heroContent.hero_title} subtitle={heroContent.hero_subtitle} />
 
       {/* upcoming tours */}
       <section className="bg-aqua">

@@ -31,7 +31,11 @@ function SaveButton() {
   );
 }
 
-export default function ContentForm({ values }: { values: Record<string, string> }) {
+export default function ContentForm({
+  values,
+}: {
+  values: Record<string, { ru: string; hy: string; en: string }>;
+}) {
   const [state, formAction] = useFormState<ContentState, FormData>(saveContent, { ok: true });
   const lastState = useRef(state);
   useEffect(() => {
@@ -49,7 +53,30 @@ export default function ContentForm({ values }: { values: Record<string, string>
           {CONTENT_FIELDS.filter((f) => f.group === 'contacts').map((f) => (
             <div key={f.key}>
               <label style={label}>{f.label}</label>
-              <input name={f.key} className="hb-in" defaultValue={values[f.key] ?? ''} placeholder={f.placeholder} />
+              <input name={f.key} className="hb-in" defaultValue={values[f.key]?.ru ?? ''} placeholder={f.placeholder} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ background: '#fff', border: '1px solid #D0E8E4', borderRadius: 16, padding: 24, marginBottom: 20, maxWidth: 560 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Главный экран (Hero)</h2>
+        <p style={{ fontSize: 12, color: '#6B8585', marginBottom: 16 }}>Пусто = текст по умолчанию из переводов сайта.</p>
+        <div style={{ display: 'grid', gap: 16 }}>
+          {CONTENT_FIELDS.filter((f) => f.group === 'hero').map((f) => (
+            <div key={f.key}>
+              <label style={label}>{f.label}</label>
+              <div style={{ display: 'grid', gap: 8 }}>
+                {(['ru', 'hy', 'en'] as const).map((lng) => (
+                  <input
+                    key={lng}
+                    name={`${f.key}_${lng}`}
+                    className="hb-in"
+                    defaultValue={values[f.key]?.[lng] ?? ''}
+                    placeholder={lng.toUpperCase()}
+                  />
+                ))}
+              </div>
             </div>
           ))}
         </div>
