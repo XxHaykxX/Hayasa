@@ -15,23 +15,15 @@ import type { ActionState } from './actions';
 
 type Action = (prev: ActionState, formData: FormData) => Promise<ActionState>;
 
-const label: React.CSSProperties = { display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 };
-const card: React.CSSProperties = {
-  background: '#fff',
-  border: '1px solid #D0E8E4',
-  borderRadius: 16,
-  padding: 24,
-  marginBottom: 20,
-};
+const labelCls = 'mb-1.5 block text-[13px] font-semibold text-navy';
+const cardCls = 'mb-5 rounded-2xl border border-edge bg-white p-6';
+const h2Cls = 'mb-4 text-base font-bold text-navy';
 
-// ISO -> value for <input type="datetime-local"> (local time).
 function toLocalInput(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
-    d.getMinutes(),
-  )}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function SubmitButton() {
@@ -40,17 +32,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      style={{
-        background: '#1A7A8A',
-        color: '#fff',
-        border: 'none',
-        borderRadius: 12,
-        padding: '12px 24px',
-        fontSize: 15,
-        fontWeight: 600,
-        cursor: pending ? 'default' : 'pointer',
-        opacity: pending ? 0.7 : 1,
-      }}
+      className="rounded-xl bg-teal px-6 py-3 text-[15px] font-semibold text-white transition-opacity disabled:opacity-70"
     >
       {pending ? 'Сохранение…' : 'Сохранить'}
     </button>
@@ -63,68 +45,68 @@ export default function TourForm({ action, initial }: { action: Action; initial?
   return (
     <form action={formAction}>
       {/* Titles */}
-      <div style={card}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Название (3 языка)</h2>
-        <div style={{ display: 'grid', gap: 14 }}>
+      <div className={cardCls}>
+        <h2 className={h2Cls}>Название (3 языка)</h2>
+        <div className="grid gap-3.5">
           <div>
-            <label style={label}>Русский *</label>
+            <label className={labelCls}>Русский *</label>
             <input name="title_ru" className="hb-in" defaultValue={initial?.title_ru ?? ''} required />
           </div>
           <div>
-            <label style={label}>Armenian (HY) *</label>
+            <label className={labelCls}>Armenian (HY) *</label>
             <input name="title_hy" className="hb-in" defaultValue={initial?.title_hy ?? ''} required />
           </div>
           <div>
-            <label style={label}>English (EN) *</label>
+            <label className={labelCls}>English (EN) *</label>
             <input name="title_en" className="hb-in" defaultValue={initial?.title_en ?? ''} required />
           </div>
         </div>
       </div>
 
       {/* Descriptions */}
-      <div style={card}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Описание (3 языка)</h2>
-        <div style={{ display: 'grid', gap: 14 }}>
+      <div className={cardCls}>
+        <h2 className={h2Cls}>Описание (3 языка)</h2>
+        <div className="grid gap-3.5">
           <div>
-            <label style={label}>Русский</label>
+            <label className={labelCls}>Русский</label>
             <textarea name="description_ru" className="hb-in" rows={3} defaultValue={initial?.description_ru ?? ''} />
           </div>
           <div>
-            <label style={label}>Armenian (HY)</label>
+            <label className={labelCls}>Armenian (HY)</label>
             <textarea name="description_hy" className="hb-in" rows={3} defaultValue={initial?.description_hy ?? ''} />
           </div>
           <div>
-            <label style={label}>English (EN)</label>
+            <label className={labelCls}>English (EN)</label>
             <textarea name="description_en" className="hb-in" rows={3} defaultValue={initial?.description_en ?? ''} />
           </div>
         </div>
       </div>
 
-      {/* Location subtitle */}
-      <div style={card}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Локация (подзаголовок карточки)</h2>
-        <div style={{ display: 'grid', gap: 14 }}>
+      {/* Location */}
+      <div className={cardCls}>
+        <h2 className={h2Cls}>Локация (подзаголовок карточки)</h2>
+        <div className="grid gap-3.5">
           <div>
-            <label style={label}>Русский</label>
+            <label className={labelCls}>Русский</label>
             <input name="location_ru" className="hb-in" defaultValue={initial?.location_ru ?? ''} placeholder="Гегард · Гарни" />
           </div>
           <div>
-            <label style={label}>Armenian (HY)</label>
+            <label className={labelCls}>Armenian (HY)</label>
             <input name="location_hy" className="hb-in" defaultValue={initial?.location_hy ?? ''} />
           </div>
           <div>
-            <label style={label}>English (EN)</label>
+            <label className={labelCls}>English (EN)</label>
             <input name="location_en" className="hb-in" defaultValue={initial?.location_en ?? ''} placeholder="Geghard · Garni" />
           </div>
         </div>
       </div>
 
       {/* Meta */}
-      <div style={card}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Параметры</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+      <div className={cardCls}>
+        <h2 className={h2Cls}>Параметры</h2>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3.5">
           <div>
-            <label style={label}>Категория</label>
+            <label className={labelCls}>Категория</label>
             <select name="category" className="hb-in" defaultValue={initial?.category ?? 'classic'}>
               {TOUR_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -134,7 +116,7 @@ export default function TourForm({ action, initial }: { action: Action; initial?
             </select>
           </div>
           <div>
-            <label style={label}>Страна</label>
+            <label className={labelCls}>Страна</label>
             <select name="country" className="hb-in" defaultValue={initial?.country ?? 'am'}>
               {TOUR_COUNTRIES.map((c) => (
                 <option key={c} value={c}>
@@ -144,7 +126,7 @@ export default function TourForm({ action, initial }: { action: Action; initial?
             </select>
           </div>
           <div>
-            <label style={label}>Язык тура</label>
+            <label className={labelCls}>Язык тура</label>
             <select name="language" className="hb-in" defaultValue={initial?.language ?? 'all'}>
               {TOUR_LANGUAGES.map((l) => (
                 <option key={l} value={l}>
@@ -154,78 +136,50 @@ export default function TourForm({ action, initial }: { action: Action; initial?
             </select>
           </div>
           <div>
-            <label style={label}>Дата и время старта *</label>
-            <input
-              type="datetime-local"
-              name="date_start"
-              className="hb-in"
-              defaultValue={toLocalInput(initial?.date_start)}
-              required
-            />
+            <label className={labelCls}>Дата и время старта *</label>
+            <input type="datetime-local" name="date_start" className="hb-in" defaultValue={toLocalInput(initial?.date_start)} required />
           </div>
           <div>
-            <label style={label}>Цена (AMD) *</label>
+            <label className={labelCls}>Цена (AMD) *</label>
             <input type="number" name="price" className="hb-in" min={0} defaultValue={initial?.price ?? 0} required />
           </div>
           <div>
-            <label style={label}>Всего мест *</label>
-            <input
-              type="number"
-              name="max_seats"
-              className="hb-in"
-              min={1}
-              defaultValue={initial?.max_seats ?? 18}
-              required
-            />
+            <label className={labelCls}>Всего мест *</label>
+            <input type="number" name="max_seats" className="hb-in" min={1} defaultValue={initial?.max_seats ?? 18} required />
           </div>
           {initial && (
             <div>
-              <label style={label}>Занято мест (авто)</label>
+              <label className={labelCls}>Занято мест (авто)</label>
               <input type="number" className="hb-in" value={initial.booked_seats} disabled readOnly />
             </div>
           )}
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, fontSize: 14 }}>
+        <label className="mt-4 flex items-center gap-2 text-sm">
           <input type="checkbox" name="is_active" defaultChecked={initial?.is_active ?? true} />
           Тур активен (виден на сайте)
         </label>
       </div>
 
       {/* Cover */}
-      <div style={card}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Обложка</h2>
+      <div className={cardCls}>
+        <h2 className={h2Cls}>Обложка</h2>
         {initial?.cover_image_url && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={initial.cover_image_url}
-            alt="Текущая обложка"
-            style={{ width: 220, height: 130, objectFit: 'cover', borderRadius: 12, marginBottom: 12 }}
-          />
+          <img src={initial.cover_image_url} alt="Текущая обложка" className="mb-3 h-[130px] w-[220px] rounded-xl object-cover" />
         )}
         <input type="file" name="cover" accept="image/*" />
-        <p style={{ fontSize: 12, color: '#6B8585', marginTop: 8 }}>
-          {initial ? 'Загрузите новый файл, чтобы заменить обложку. Иначе останется текущая.' : 'PNG/JPG, до ~3 МБ.'}
+        <p className="mt-2 text-xs text-muted">
+          {initial ? 'Загрузите новый файл, чтобы заменить обложку. Иначе останется текущая.' : 'PNG/JPG/WebP, до 5 МБ.'}
         </p>
       </div>
 
       {!state.ok && state.error && (
-        <div
-          style={{
-            fontSize: 14,
-            color: '#C0564B',
-            background: '#FCEDEB',
-            borderRadius: 10,
-            padding: '12px 14px',
-            marginBottom: 16,
-          }}
-        >
-          {state.error}
-        </div>
+        <div className="mb-4 rounded-[10px] bg-[#FCEDEB] px-3.5 py-3 text-sm text-[#C0564B]">{state.error}</div>
       )}
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <div className="flex items-center gap-3">
         <SubmitButton />
-        <Link href="/admin/tours" style={{ color: '#6B8585', fontSize: 14, textDecoration: 'none' }}>
+        <Link href="/admin/tours" className="text-sm text-muted no-underline">
           Отмена
         </Link>
       </div>

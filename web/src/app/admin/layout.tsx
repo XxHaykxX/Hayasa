@@ -14,9 +14,7 @@ export const metadata: Metadata = {
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru" className={inter.variable}>
-      <body className="font-body antialiased" style={{ background: '#F4F8F8', color: '#1A3A5C' }}>
-        {children}
-      </body>
+      <body className="bg-[#F4F8F8] font-body text-navy antialiased">{children}</body>
     </html>
   );
 }

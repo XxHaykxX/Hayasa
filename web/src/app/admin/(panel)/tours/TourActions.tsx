@@ -34,26 +34,19 @@ export default function TourActions({
     });
   }
 
-  const btn: React.CSSProperties = {
-    border: '1px solid #D0E8E4',
-    background: '#fff',
-    borderRadius: 8,
-    padding: '6px 10px',
-    fontSize: 13,
-    cursor: pending ? 'default' : 'pointer',
-    opacity: pending ? 0.6 : 1,
-  };
+  const btn =
+    'rounded-lg border border-edge bg-white px-2.5 py-1.5 text-[13px] disabled:opacity-60';
 
   return (
-    <div style={{ display: 'flex', gap: 8 }}>
-      <button type="button" onClick={onToggle} disabled={pending} style={btn}>
+    <div className="flex gap-2">
+      <button type="button" onClick={onToggle} disabled={pending} className={btn}>
         {isActive ? 'Скрыть' : 'Показать'}
       </button>
       <button
         type="button"
         onClick={onDelete}
         disabled={pending}
-        style={{ ...btn, color: '#C0564B', borderColor: '#F1C9C3' }}
+        className={`${btn} border-[#F1C9C3] text-[#C0564B]`}
       >
         Удалить
       </button>

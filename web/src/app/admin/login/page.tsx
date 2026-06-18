@@ -26,7 +26,6 @@ export default function AdminLoginPage() {
         setLoading(false);
         return;
       }
-      // Confirm admin rights before entering the panel.
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -47,84 +46,44 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-      }}
-    >
+    <main className="flex min-h-screen items-center justify-center p-6">
       <form
         onSubmit={handleSubmit}
-        style={{
-          width: '100%',
-          maxWidth: 380,
-          background: '#fff',
-          border: '1px solid #D0E8E4',
-          borderRadius: 18,
-          padding: 32,
-          boxShadow: '0 12px 40px rgba(26,58,92,0.08)',
-        }}
+        className="w-full max-w-[380px] rounded-[18px] border border-edge bg-white p-8 shadow-[0_12px_40px_rgba(26,58,92,0.08)]"
       >
-        <div style={{ fontSize: 22, fontWeight: 700, color: '#1A3A5C', marginBottom: 4 }}>
-          Hayasa <span style={{ color: '#1A7A8A' }}>Admin</span>
+        <div className="mb-1 text-[22px] font-bold text-navy">
+          Hayasa <span className="text-teal">Admin</span>
         </div>
-        <p style={{ fontSize: 14, color: '#6B8585', marginBottom: 24 }}>Панель управления сайтом</p>
+        <p className="mb-6 text-sm text-muted">Панель управления сайтом</p>
 
-        <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Email</label>
+        <label className="mb-1.5 block text-[13px] font-semibold text-navy">Email</label>
         <input
           type="email"
-          className="hb-in"
+          className="hb-in mb-4"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="username"
           required
-          style={{ marginBottom: 16 }}
         />
 
-        <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Пароль</label>
+        <label className="mb-1.5 block text-[13px] font-semibold text-navy">Пароль</label>
         <input
           type="password"
-          className="hb-in"
+          className="hb-in mb-5"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
           required
-          style={{ marginBottom: 20 }}
         />
 
         {error && (
-          <div
-            style={{
-              fontSize: 13,
-              color: '#C0564B',
-              background: '#FCEDEB',
-              borderRadius: 10,
-              padding: '10px 12px',
-              marginBottom: 16,
-            }}
-          >
-            {error}
-          </div>
+          <div className="mb-4 rounded-[10px] bg-[#FCEDEB] px-3 py-2.5 text-[13px] text-[#C0564B]">{error}</div>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          style={{
-            width: '100%',
-            background: '#1A7A8A',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 12,
-            padding: '12px 14px',
-            fontSize: 15,
-            fontWeight: 600,
-            cursor: loading ? 'default' : 'pointer',
-            opacity: loading ? 0.7 : 1,
-          }}
+          className="w-full rounded-xl bg-teal px-3.5 py-3 text-[15px] font-semibold text-white transition-opacity disabled:opacity-70"
         >
           {loading ? 'Вход…' : 'Войти'}
         </button>

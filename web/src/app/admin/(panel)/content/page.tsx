@@ -7,10 +7,8 @@ export default async function AdminContentPage() {
   const values = await getContentMapAdmin();
   return (
     <div>
-      <h1 style={{ fontSize: 26, fontWeight: 700, marginBottom: 6 }}>Контент сайта</h1>
-      <p style={{ color: '#6B8585', fontSize: 14, marginBottom: 24 }}>
-        Контактные данные. Пусто = используется значение по умолчанию из кода.
-      </p>
+      <h1 className="mb-1.5 text-[26px] font-bold text-navy">Контент сайта</h1>
+      <p className="mb-6 text-sm text-muted">Пусто = используется значение по умолчанию.</p>
       <ContentForm values={values} />
     </div>
   );

@@ -22,8 +22,7 @@ export default function StatusSelect({ id, value }: { id: string; value: Booking
           router.refresh();
         });
       }}
-      className="hb-in"
-      style={{ padding: '6px 10px', fontSize: 13, width: 'auto', opacity: pending ? 0.6 : 1 }}
+      className={`hb-in w-auto px-2.5 py-1.5 text-[13px] ${pending ? 'opacity-60' : ''}`}
     >
       {BOOKING_STATUSES.map((s) => (
         <option key={s} value={s}>

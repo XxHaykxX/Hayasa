@@ -15,11 +15,11 @@ export default async function EditTourPage({ params }: { params: { id: string } 
   const stops = await listStops(tour.id);
 
   return (
-    <div style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 26, fontWeight: 700, marginBottom: 20 }}>Редактирование тура</h1>
+    <div className="max-w-[720px]">
+      <h1 className="mb-5 text-[26px] font-bold text-navy">Редактирование тура</h1>
       <TourForm action={action} initial={tour} />
 
-      <div style={{ marginTop: 36, paddingTop: 28, borderTop: '2px solid #E3EEEC' }}>
+      <div className="mt-9 border-t-2 border-[#E3EEEC] pt-7">
         <StopsManager tourId={tour.id} stops={stops} />
       </div>
     </div>

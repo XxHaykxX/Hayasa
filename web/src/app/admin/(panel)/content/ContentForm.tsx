@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 import { CONTENT_FIELDS } from '@/lib/site-content';
 import { saveContent, type ContentState } from './actions';
 
-const label: React.CSSProperties = { display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 };
+const labelCls = 'mb-1.5 block text-[13px] font-semibold text-navy';
+const cardCls = 'mb-5 max-w-[560px] rounded-2xl border border-edge bg-white p-6';
 
 function SaveButton() {
   const { pending } = useFormStatus();
@@ -14,17 +15,7 @@ function SaveButton() {
     <button
       type="submit"
       disabled={pending}
-      style={{
-        background: '#1A7A8A',
-        color: '#fff',
-        border: 'none',
-        borderRadius: 12,
-        padding: '12px 24px',
-        fontSize: 15,
-        fontWeight: 600,
-        cursor: pending ? 'default' : 'pointer',
-        opacity: pending ? 0.7 : 1,
-      }}
+      className="rounded-xl bg-teal px-6 py-3 text-[15px] font-semibold text-white transition-opacity disabled:opacity-70"
     >
       {pending ? 'Сохранение…' : 'Сохранить'}
     </button>
@@ -47,26 +38,26 @@ export default function ContentForm({
 
   return (
     <form action={formAction}>
-      <div style={{ background: '#fff', border: '1px solid #D0E8E4', borderRadius: 16, padding: 24, marginBottom: 20, maxWidth: 560 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Контакты</h2>
-        <div style={{ display: 'grid', gap: 14 }}>
+      <div className={cardCls}>
+        <h2 className="mb-4 text-base font-bold text-navy">Контакты</h2>
+        <div className="grid gap-3.5">
           {CONTENT_FIELDS.filter((f) => f.group === 'contacts').map((f) => (
             <div key={f.key}>
-              <label style={label}>{f.label}</label>
+              <label className={labelCls}>{f.label}</label>
               <input name={f.key} className="hb-in" defaultValue={values[f.key]?.ru ?? ''} placeholder={f.placeholder} />
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #D0E8E4', borderRadius: 16, padding: 24, marginBottom: 20, maxWidth: 560 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Главный экран (Hero)</h2>
-        <p style={{ fontSize: 12, color: '#6B8585', marginBottom: 16 }}>Пусто = текст по умолчанию из переводов сайта.</p>
-        <div style={{ display: 'grid', gap: 16 }}>
+      <div className={cardCls}>
+        <h2 className="mb-1 text-base font-bold text-navy">Главный экран (Hero)</h2>
+        <p className="mb-4 text-xs text-muted">Пусто = текст по умолчанию из переводов сайта.</p>
+        <div className="grid gap-4">
           {CONTENT_FIELDS.filter((f) => f.group === 'hero').map((f) => (
             <div key={f.key}>
-              <label style={label}>{f.label}</label>
-              <div style={{ display: 'grid', gap: 8 }}>
+              <label className={labelCls}>{f.label}</label>
+              <div className="grid gap-2">
                 {(['ru', 'hy', 'en'] as const).map((lng) => (
                   <input
                     key={lng}
@@ -83,7 +74,7 @@ export default function ContentForm({
       </div>
 
       {state.ok === false && state.error && (
-        <div style={{ fontSize: 14, color: '#C0564B', background: '#FCEDEB', borderRadius: 10, padding: '12px 14px', marginBottom: 16, maxWidth: 560 }}>
+        <div className="mb-4 max-w-[560px] rounded-[10px] bg-[#FCEDEB] px-3.5 py-3 text-sm text-[#C0564B]">
           {state.error}
         </div>
       )}

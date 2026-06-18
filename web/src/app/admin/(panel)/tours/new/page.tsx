@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic';
 
 export default function NewTourPage() {
   return (
-    <div style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 26, fontWeight: 700, marginBottom: 20 }}>Новый тур</h1>
+    <div className="max-w-[720px]">
+      <h1 className="mb-5 text-[26px] font-bold text-navy">Новый тур</h1>
       <TourForm action={createTour} />
     </div>
   );
