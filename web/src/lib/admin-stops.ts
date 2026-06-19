@@ -20,18 +20,23 @@ export type StopRow = {
   description_en: string | null;
   latitude: number | null;
   longitude: number | null;
+  duration: string | null;
+  destination_slug: string | null;
   stop_photos: StopPhotoRow[];
 };
 
 export const stopSchema = z.object({
-  name_ru: z.string().trim().min(1, 'Название (RU) обязательно'),
-  name_hy: z.string().trim().optional().default(''),
+  // HY is the primary language; RU/EN optional.
+  name_hy: z.string().trim().min(1, 'Название (HY) обязательно'),
+  name_ru: z.string().trim().optional().default(''),
   name_en: z.string().trim().optional().default(''),
   description_ru: z.string().trim().optional().default(''),
   description_hy: z.string().trim().optional().default(''),
   description_en: z.string().trim().optional().default(''),
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
+  duration: z.string().trim().optional().default(''),
+  destination_slug: z.string().trim().optional().default(''),
   order_index: z.coerce.number().int().min(0).default(0),
 });
 

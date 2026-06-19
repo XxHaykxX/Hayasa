@@ -3,13 +3,31 @@ import type { Localized } from './tours';
 
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-/** Format a timestamptz ISO string as "Jun 20, 2026" (UTC, deterministic SSR/client). */
-export function formatTourDate(iso: string): string {
+// Short month names per locale (RU/HY in genitive — "21 июня", "21 հունիսի").
+const MONTHS_LOC: Record<string, string[]> = {
+  en: MONTHS,
+  ru: ['янв.', 'февр.', 'марта', 'апр.', 'мая', 'июня', 'июля', 'авг.', 'сент.', 'окт.', 'нояб.', 'дек.'],
+  hy: ['հունվ.', 'փետր.', 'մարտի', 'ապր.', 'մայիսի', 'հունիսի', 'հուլիսի', 'օգոստ.', 'սեպտ.', 'հոկտ.', 'նոյ.', 'դեկտ.'],
+};
+
+/**
+ * Format a timestamptz ISO string for display (UTC, deterministic SSR/client).
+ * EN → "Jun 20, 2026"; RU/HY → "20 июня 2026" / "20 հունիսի 2026".
+ */
+export function formatTourDate(iso: string, locale = 'en'): string {
   const d = new Date(iso);
-  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+  const day = d.getUTCDate();
+  const mon = (MONTHS_LOC[locale] ?? MONTHS)[d.getUTCMonth()];
+  const year = d.getUTCFullYear();
+  return locale === 'en' ? `${mon} ${day}, ${year}` : `${day} ${mon} ${year}`;
 }
 
-/** Build a Localized value from nullable per-locale columns with a shared fallback. */
+/**
+ * Build a Localized value from nullable per-locale columns. HY is the primary
+ * language (always filled in admin); empty RU/EN fall back to HY, then to the
+ * other languages, then to the shared fallback.
+ */
 export function loc(hy: string | null, ru: string | null, en: string | null, fb: string): Localized {
-  return { hy: hy || fb, ru: ru || fb, en: en || fb };
+  const primary = hy || ru || en || fb;
+  return { hy: hy || primary, ru: ru || primary, en: en || primary };
 }

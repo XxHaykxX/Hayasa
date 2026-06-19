@@ -11,10 +11,11 @@ import { Btn } from '@/components/ui/Btn';
 import { Field } from '@/components/ui/Field';
 import { L, type Tour } from '@/lib/tours';
 import { createBooking } from '@/lib/db';
+import { BOOKING_TERMS as TERMS, DEPOSIT_PCT } from '@/lib/booking-terms';
 
 type Errors = { firstName?: string; lastName?: string; phone?: string };
 
-export default function BookingClient({ tour }: { tour: Tour }) {
+export default function BookingClient({ tour, office }: { tour: Tour; office: string }) {
   const t = useTranslations('Booking');
   const locale = useLocale();
   const tourName = L(tour.name, locale);
@@ -31,6 +32,7 @@ export default function BookingClient({ tour }: { tour: Tour }) {
 
   const unit = parseInt(tour.price.replace(/\s/g, ''), 10);
   const total = (unit * seats).toLocaleString('ru-RU');
+  const prepay = Math.round(unit * seats * (DEPOSIT_PCT / 100)).toLocaleString('ru-RU');
 
   function validate(): Errors {
     const next: Errors = {};
@@ -146,6 +148,30 @@ export default function BookingClient({ tour }: { tour: Tour }) {
             <Field label={t('notes')}>
               <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} placeholder={t('notesPlaceholder')} className="hb-in resize-none" />
             </Field>
+
+            {/* terms & important info */}
+            <div className="rounded-[14px] border border-edge bg-white p-6">
+              <h2 className="font-display text-xl font-bold text-navy mb-4">{L(TERMS.heading, locale)}</h2>
+              <div className="grid sm:grid-cols-2 gap-5 mb-5">
+                <div className="rounded-xl bg-aqua p-4">
+                  <div className="font-body text-xs font-bold tracking-widest text-teal mb-1.5">{L(TERMS.prepaymentTitle, locale)}</div>
+                  <p className="font-body text-[14px] text-navy/80 leading-relaxed">{L(TERMS.prepayment, locale)}</p>
+                </div>
+                <div className="rounded-xl bg-[#FCEDEB] p-4">
+                  <div className="font-body text-xs font-bold tracking-widest text-amber-dark mb-1.5">{L(TERMS.cancellationTitle, locale)}</div>
+                  <p className="font-body text-[14px] text-navy/80 leading-relaxed">{L(TERMS.cancellation, locale)}</p>
+                </div>
+              </div>
+              <div className="font-body text-xs font-bold tracking-widest text-teal mb-2.5">{L(TERMS.rulesTitle, locale)}</div>
+              <ul className="space-y-2">
+                {TERMS.rules.map((r, i) => (
+                  <li key={i} className="flex items-start gap-2.5 font-body text-[14px] text-navy/80 leading-relaxed">
+                    <span className="mt-[7px] h-1.5 w-1.5 flex-none rounded-full bg-teal" />
+                    {L(r, locale).replace('{office}', office)}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {/* summary */}
@@ -172,6 +198,10 @@ export default function BookingClient({ tour }: { tour: Tour }) {
                 <span className="font-mono text-2xl font-bold text-navy">
                   {total} <span className="text-base text-muted">֏</span>
                 </span>
+              </div>
+              <div className="flex items-baseline justify-between rounded-xl bg-teal/10 px-4 py-3 mb-3">
+                <span className="font-body text-sm font-bold text-teal-dark">{L(TERMS.prepaymentTitle, locale)} ({DEPOSIT_PCT}%)</span>
+                <span className="font-mono text-lg font-bold text-teal-dark">{prepay} ֏</span>
               </div>
               <div className="rounded-xl bg-aqua px-4 py-3 mb-5 font-body text-[13px] text-muted leading-snug">{t('offlineNote')}</div>
               <Btn variant="amber" size="lg" full icon="check" type="submit">

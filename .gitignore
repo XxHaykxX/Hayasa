@@ -1,5 +1,7 @@
 # Local tooling / secrets — never commit
 .claude/
+.mcp.json
+CLAUDE.md
 **/node_modules/
 **/.next/
 **/out/
@@ -13,3 +15,15 @@ npm-debug.log*
 
 # Local Playwright MCP artifacts
 **/.playwright-mcp/
+
+# Local references / tooling / scratch — keep on disk, never commit
+/Hyur Service/
+/docs/
+/.agents/
+/skills-lock.json
+/hayasa_competitor_tours.md
+/hayasa_seo_competitor_report.md
+/redesign_prompt.md
+/seed-*.mjs
+/*.jpeg
+/*.png

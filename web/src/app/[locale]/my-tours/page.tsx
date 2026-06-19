@@ -22,7 +22,7 @@ export default function MyToursPage() {
 
   useEffect(() => {
     let active = true;
-    getMyBookings().then((res) => {
+    getMyBookings(locale).then((res) => {
       if (!active) return;
       if (res === null) setAuthed(false);
       else setAll(res);
@@ -31,7 +31,7 @@ export default function MyToursPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [locale]);
 
   const tabs: ['upcoming' | 'past', string][] = [
     ['upcoming', t('upcoming')],

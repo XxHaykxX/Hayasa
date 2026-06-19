@@ -44,62 +44,57 @@ export default function TourForm({ action, initial }: { action: Action; initial?
 
   return (
     <form action={formAction}>
-      {/* Titles */}
+      {/* Primary content — Armenian (the main language) */}
       <div className={cardCls}>
-        <h2 className={h2Cls}>Название (3 языка)</h2>
+        <h2 className={h2Cls}>Основное · армянский (главный язык)</h2>
         <div className="grid gap-3.5">
           <div>
-            <label className={labelCls}>Русский *</label>
-            <input name="title_ru" className="hb-in" defaultValue={initial?.title_ru ?? ''} required />
-          </div>
-          <div>
-            <label className={labelCls}>Armenian (HY) *</label>
+            <label className={labelCls}>Название HY *</label>
             <input name="title_hy" className="hb-in" defaultValue={initial?.title_hy ?? ''} required />
           </div>
           <div>
-            <label className={labelCls}>English (EN) *</label>
-            <input name="title_en" className="hb-in" defaultValue={initial?.title_en ?? ''} required />
-          </div>
-        </div>
-      </div>
-
-      {/* Descriptions */}
-      <div className={cardCls}>
-        <h2 className={h2Cls}>Описание (3 языка)</h2>
-        <div className="grid gap-3.5">
-          <div>
-            <label className={labelCls}>Русский</label>
-            <textarea name="description_ru" className="hb-in" rows={3} defaultValue={initial?.description_ru ?? ''} />
-          </div>
-          <div>
-            <label className={labelCls}>Armenian (HY)</label>
+            <label className={labelCls}>Описание HY</label>
             <textarea name="description_hy" className="hb-in" rows={3} defaultValue={initial?.description_hy ?? ''} />
           </div>
           <div>
-            <label className={labelCls}>English (EN)</label>
-            <textarea name="description_en" className="hb-in" rows={3} defaultValue={initial?.description_en ?? ''} />
+            <label className={labelCls}>Локация HY · подзаголовок карточки</label>
+            <input name="location_hy" className="hb-in" defaultValue={initial?.location_hy ?? ''} placeholder="Գեղարդ · Գառնի" />
           </div>
         </div>
       </div>
 
-      {/* Location */}
-      <div className={cardCls}>
-        <h2 className={h2Cls}>Локация (подзаголовок карточки)</h2>
-        <div className="grid gap-3.5">
+      {/* Translations — RU / EN (optional, collapsed by default) */}
+      <details className={cardCls}>
+        <summary className="cursor-pointer list-none text-base font-bold text-navy">
+          Переводы · Русский / English <span className="font-normal text-muted">(необязательно)</span>
+        </summary>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
-            <label className={labelCls}>Русский</label>
+            <label className={labelCls}>Название RU</label>
+            <input name="title_ru" className="hb-in" defaultValue={initial?.title_ru ?? ''} />
+          </div>
+          <div>
+            <label className={labelCls}>Название EN</label>
+            <input name="title_en" className="hb-in" defaultValue={initial?.title_en ?? ''} />
+          </div>
+          <div>
+            <label className={labelCls}>Описание RU</label>
+            <textarea name="description_ru" className="hb-in" rows={3} defaultValue={initial?.description_ru ?? ''} />
+          </div>
+          <div>
+            <label className={labelCls}>Описание EN</label>
+            <textarea name="description_en" className="hb-in" rows={3} defaultValue={initial?.description_en ?? ''} />
+          </div>
+          <div>
+            <label className={labelCls}>Локация RU</label>
             <input name="location_ru" className="hb-in" defaultValue={initial?.location_ru ?? ''} placeholder="Гегард · Гарни" />
           </div>
           <div>
-            <label className={labelCls}>Armenian (HY)</label>
-            <input name="location_hy" className="hb-in" defaultValue={initial?.location_hy ?? ''} />
-          </div>
-          <div>
-            <label className={labelCls}>English (EN)</label>
+            <label className={labelCls}>Локация EN</label>
             <input name="location_en" className="hb-in" defaultValue={initial?.location_en ?? ''} placeholder="Geghard · Garni" />
           </div>
         </div>
-      </div>
+      </details>
 
       {/* Meta */}
       <div className={cardCls}>
@@ -144,15 +139,17 @@ export default function TourForm({ action, initial }: { action: Action; initial?
             <input type="number" name="price" className="hb-in" min={0} defaultValue={initial?.price ?? 0} required />
           </div>
           <div>
+            <label className={labelCls}>Дней</label>
+            <input type="number" name="duration_days" className="hb-in" min={1} defaultValue={initial?.duration_days ?? 1} />
+          </div>
+          <div>
+            <label className={labelCls}>Ночей</label>
+            <input type="number" name="duration_nights" className="hb-in" min={0} defaultValue={initial?.duration_nights ?? 0} />
+          </div>
+          <div>
             <label className={labelCls}>Всего мест *</label>
             <input type="number" name="max_seats" className="hb-in" min={1} defaultValue={initial?.max_seats ?? 18} required />
           </div>
-          {initial && (
-            <div>
-              <label className={labelCls}>Занято мест (авто)</label>
-              <input type="number" className="hb-in" value={initial.booked_seats} disabled readOnly />
-            </div>
-          )}
         </div>
         <label className="mt-4 flex items-center gap-2 text-sm">
           <input type="checkbox" name="is_active" defaultChecked={initial?.is_active ?? true} />
@@ -160,16 +157,36 @@ export default function TourForm({ action, initial }: { action: Action; initial?
         </label>
       </div>
 
-      {/* Cover */}
+      {/* Inclusions / Exclusions */}
       <div className={cardCls}>
-        <h2 className={h2Cls}>Обложка</h2>
-        {initial?.cover_image_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={initial.cover_image_url} alt="Текущая обложка" className="mb-3 h-[130px] w-[220px] rounded-xl object-cover" />
-        )}
-        <input type="file" name="cover" accept="image/*" />
+        <h2 className={h2Cls}>Что входит / не входит (каждый пункт с новой строки)</h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <div className="mb-2 text-[13px] font-bold text-teal">✓ Входит в тур</div>
+            <div className="grid gap-2.5">
+              <textarea name="inclusions_ru" className="hb-in" rows={5} placeholder="Входит — Русский (по строке на пункт)" defaultValue={initial?.inclusions?.ru?.join('\n') ?? ''} />
+              <textarea name="inclusions_hy" className="hb-in" rows={5} placeholder="Входит — Armenian (HY)" defaultValue={initial?.inclusions?.hy?.join('\n') ?? ''} />
+              <textarea name="inclusions_en" className="hb-in" rows={5} placeholder="Includes — English (EN)" defaultValue={initial?.inclusions?.en?.join('\n') ?? ''} />
+            </div>
+          </div>
+          <div>
+            <div className="mb-2 text-[13px] font-bold text-[#C0564B]">✕ Не входит</div>
+            <div className="grid gap-2.5">
+              <textarea name="exclusions_ru" className="hb-in" rows={5} placeholder="Не входит — Русский (по строке на пункт)" defaultValue={initial?.exclusions?.ru?.join('\n') ?? ''} />
+              <textarea name="exclusions_hy" className="hb-in" rows={5} placeholder="Не входит — Armenian (HY)" defaultValue={initial?.exclusions?.hy?.join('\n') ?? ''} />
+              <textarea name="exclusions_en" className="hb-in" rows={5} placeholder="Excludes — English (EN)" defaultValue={initial?.exclusions?.en?.join('\n') ?? ''} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Photos */}
+      <div className={cardCls}>
+        <h2 className={h2Cls}>Фото тура</h2>
+        <input type="file" name="photos" accept="image/*" multiple />
         <p className="mt-2 text-xs text-muted">
-          {initial ? 'Загрузите новый файл, чтобы заменить обложку. Иначе останется текущая.' : 'PNG/JPG/WebP, до 5 МБ.'}
+          Можно выбрать несколько — они идут в карусель карточки. Первое фото становится обложкой. PNG/JPG/WebP, до 5 МБ каждое.
+          {initial ? ' Уже загруженные фото — ниже, под формой.' : ''}
         </p>
       </div>
 

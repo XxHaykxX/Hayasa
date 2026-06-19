@@ -21,6 +21,8 @@ function parseStop(formData: FormData) {
     description_en: formData.get('description_en') ?? '',
     latitude: formData.get('latitude'),
     longitude: formData.get('longitude'),
+    duration: formData.get('duration') ?? '',
+    destination_slug: formData.get('destination_slug') ?? '',
     order_index: formData.get('order_index') ?? 0,
   });
 }
@@ -35,6 +37,8 @@ function toStopRow(input: ReturnType<typeof stopSchema.parse>) {
     description_en: input.description_en || null,
     latitude: input.latitude,
     longitude: input.longitude,
+    duration: input.duration || null,
+    destination_slug: input.destination_slug || null,
     order_index: input.order_index,
   };
 }
@@ -121,27 +125,44 @@ export async function addStopPhoto(
   formData: FormData,
 ): Promise<StopActionState> {
   await requireAdmin();
-  const file = formData.get('photo');
-  if (!file || typeof file === 'string' || !(file as File).size) {
-    return { ok: false, error: 'Выберите файл.' };
-  }
-  const f = file as File;
-  const invalid = validateImage(f);
-  if (invalid) return { ok: false, error: invalid };
+  const files = formData
+    .getAll('photo')
+    .filter((f): f is File => typeof f !== 'string' && (f as File).size > 0);
+  if (files.length === 0) return { ok: false, error: 'Выберите файл.' };
   const db = createServiceSupabase();
   if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
-  const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const path = `stops/${stopId}/${crypto.randomUUID()}.${ext}`;
-  const { error: upErr } = await db.storage
-    .from(BUCKET)
-    .upload(path, f, { contentType: f.type || 'image/jpeg', upsert: false });
-  if (upErr) return { ok: false, error: upErr.message };
-  const url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+
+  // Validate all before uploading any (fail fast on a bad file).
+  for (const f of files) {
+    const invalid = validateImage(f);
+    if (invalid) return { ok: false, error: `${f.name}: ${invalid}` };
+  }
+
   const { count } = await db.from('stop_photos').select('*', { count: 'exact', head: true }).eq('stop_id', stopId);
-  const { error } = await db.from('stop_photos').insert({ stop_id: stopId, photo_url: url, order_index: count ?? 0 });
-  if (error) return { ok: false, error: error.message };
+  let idx = count ?? 0;
+  for (const f of files) {
+    const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const path = `stops/${stopId}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await db.storage
+      .from(BUCKET)
+      .upload(path, f, { contentType: f.type || 'image/jpeg', upsert: false });
+    if (upErr) return { ok: false, error: upErr.message };
+    const url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    const { error } = await db.from('stop_photos').insert({ stop_id: stopId, photo_url: url, order_index: idx++ });
+    if (error) return { ok: false, error: error.message };
+  }
   revalidate(tourId);
   return { ok: true };
+}
+
+export async function reorderStopPhotos(stopId: string, tourId: string, orderedIds: string[]): Promise<void> {
+  await requireAdmin();
+  const db = createServiceSupabase();
+  if (!db) return;
+  await Promise.all(
+    orderedIds.map((id, i) => db.from('stop_photos').update({ order_index: i }).eq('id', id).eq('stop_id', stopId)),
+  );
+  revalidate(tourId);
 }
 
 export async function deleteStopPhoto(photoId: string, tourId: string): Promise<void> {

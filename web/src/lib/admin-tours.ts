@@ -34,6 +34,8 @@ export const LANGUAGE_LABEL: Record<(typeof TOUR_LANGUAGES)[number], string> = {
   en: 'Английский',
 };
 
+export type LocalizedList = { hy?: string[]; ru?: string[]; en?: string[] };
+
 export type TourRow = {
   id: string;
   title_hy: string;
@@ -50,19 +52,24 @@ export type TourRow = {
   date_start: string;
   price: number;
   currency: string;
+  duration_days: number;
+  duration_nights: number;
   max_seats: number;
   booked_seats: number;
   language: string;
   cover_image_url: string | null;
   is_active: boolean;
+  inclusions: LocalizedList | null;
+  exclusions: LocalizedList | null;
   created_at: string;
 };
 
 // Form input validation. Dates arrive as <input type="datetime-local"> strings.
 export const tourSchema = z.object({
+  // HY is the primary language (site runs in Armenia); RU/EN are optional.
   title_hy: z.string().trim().min(1, 'Название (HY) обязательно'),
-  title_ru: z.string().trim().min(1, 'Название (RU) обязательно'),
-  title_en: z.string().trim().min(1, 'Название (EN) обязательно'),
+  title_ru: z.string().trim().optional().default(''),
+  title_en: z.string().trim().optional().default(''),
   description_hy: z.string().trim().optional().default(''),
   description_ru: z.string().trim().optional().default(''),
   description_en: z.string().trim().optional().default(''),
@@ -73,6 +80,8 @@ export const tourSchema = z.object({
   country: z.enum(TOUR_COUNTRIES),
   date_start: z.string().min(1, 'Дата обязательна'),
   price: z.coerce.number().int().min(0, 'Цена не может быть отрицательной'),
+  duration_days: z.coerce.number().int().min(1).default(1),
+  duration_nights: z.coerce.number().int().min(0).default(0),
   max_seats: z.coerce.number().int().min(1, 'Минимум 1 место'),
   booked_seats: z.coerce.number().int().min(0).default(0),
   language: z.enum(TOUR_LANGUAGES),

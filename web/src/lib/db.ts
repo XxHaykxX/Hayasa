@@ -100,8 +100,17 @@ type DbStop = {
   description_en: string | null;
   latitude: number | null;
   longitude: number | null;
+  duration: string | null;
+  destination_slug: string | null;
   stop_photos?: { photo_url: string; order_index: number }[] | null;
 };
+
+type DbList = { hy?: string[]; ru?: string[]; en?: string[] } | null;
+
+// Normalize a jsonb list column into a full per-locale shape.
+function normList(v: DbList): { en: string[]; ru: string[]; hy: string[] } {
+  return { en: v?.en ?? [], ru: v?.ru ?? [], hy: v?.hy ?? [] };
+}
 
 type DbTour = {
   id: string;
@@ -123,12 +132,17 @@ type DbTour = {
   language: string;
   cover_image_url: string | null;
   route_path: [number, number][] | null;
+  inclusions: DbList;
+  exclusions: DbList;
+  duration_days: number | null;
+  duration_nights: number | null;
+  tour_photos?: { photo_url: string; order_index: number }[] | null;
   stops?: DbStop[] | null;
 };
 
-function mapTour(row: DbTour, variant: number): Tour {
+function mapTour(row: DbTour, variant: number, locale = 'en'): Tour {
   const d = new Date(row.date_start);
-  const dateStr = formatTourDate(row.date_start);
+  const dateStr = formatTourDate(row.date_start, locale);
   const stops = (row.stops ?? [])
     .slice()
     .sort((a, b) => a.order_index - b.order_index)
@@ -137,6 +151,8 @@ function mapTour(row: DbTour, variant: number): Tour {
       desc: loc(s.description_hy, s.description_ru, s.description_en, ''),
       lat: s.latitude ?? 0,
       lng: s.longitude ?? 0,
+      duration: s.duration,
+      destinationSlug: s.destination_slug,
       photos: (s.stop_photos ?? [])
         .slice()
         .sort((a, b) => a.order_index - b.order_index)
@@ -160,15 +176,23 @@ function mapTour(row: DbTour, variant: number): Tour {
     description: loc(row.description_hy, row.description_ru, row.description_en, ''),
     stops,
     cover: row.cover_image_url ?? null,
+    photos: (row.tour_photos ?? [])
+      .slice()
+      .sort((a, b) => a.order_index - b.order_index)
+      .map((p) => p.photo_url),
     routePath: row.route_path ?? null,
+    inclusions: normList(row.inclusions),
+    exclusions: normList(row.exclusions),
+    durationDays: row.duration_days ?? 1,
+    durationNights: row.duration_nights ?? 0,
   };
 }
 
 const TOUR_SELECT =
-  'id,title_hy,title_ru,title_en,description_hy,description_ru,description_en,location_hy,location_ru,location_en,category,country,date_start,price,max_seats,booked_seats,language,cover_image_url,route_path,stops(order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,stop_photos(photo_url,order_index))';
+  'id,title_hy,title_ru,title_en,description_hy,description_ru,description_en,location_hy,location_ru,location_en,category,country,date_start,price,max_seats,booked_seats,language,cover_image_url,route_path,inclusions,exclusions,duration_days,duration_nights,tour_photos(photo_url,order_index),stops(order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,duration,destination_slug,stop_photos(photo_url,order_index))';
 
 /** All active tours for the public site. Falls back to mock TOURS. */
-export async function getPublicTours(): Promise<Tour[]> {
+export async function getPublicTours(locale = 'en'): Promise<Tour[]> {
   const supabase = getSupabase();
   if (!supabase) return TOURS;
   try {
@@ -178,21 +202,21 @@ export async function getPublicTours(): Promise<Tour[]> {
       .eq('is_active', true)
       .order('date_start', { ascending: true });
     if (error || !data || data.length === 0) return TOURS;
-    return (data as unknown as DbTour[]).map(mapTour);
+    return (data as unknown as DbTour[]).map((row, i) => mapTour(row, i, locale));
   } catch {
     return TOURS;
   }
 }
 
 /** A single tour by id. Falls back to the mock tour with the same id. */
-export async function getPublicTour(id: string): Promise<Tour | null> {
+export async function getPublicTour(id: string, locale = 'en'): Promise<Tour | null> {
   const supabase = getSupabase();
   const fallback = TOURS.find((t) => t.id === id) ?? null;
   if (!supabase) return fallback;
   try {
     const { data, error } = await supabase.from('tours').select(TOUR_SELECT).eq('id', id).single();
     if (error || !data) return fallback;
-    return mapTour(data as unknown as DbTour, 0);
+    return mapTour(data as unknown as DbTour, 0, locale);
   } catch {
     return fallback;
   }

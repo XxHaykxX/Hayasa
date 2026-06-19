@@ -29,3 +29,16 @@ export async function getTourRow(id: string): Promise<TourRow | null> {
   if (error) return null;
   return data as TourRow;
 }
+
+export type TourPhotoRow = { id: string; photo_url: string; order_index: number };
+
+export async function listTourPhotos(tourId: string): Promise<TourPhotoRow[]> {
+  const client = db();
+  if (!client) return [];
+  const { data } = await client
+    .from('tour_photos')
+    .select('id,photo_url,order_index')
+    .eq('tour_id', tourId)
+    .order('order_index', { ascending: true });
+  return (data ?? []) as TourPhotoRow[];
+}

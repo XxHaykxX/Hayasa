@@ -119,6 +119,39 @@ Git main: всё закоммичено и запушено. E2E 12/12 PASS по
 - История карты: Yandex(straight)→multiRouter(только точки, роутинг-ключ платный)→Leaflet/OSM(не понравился вид)→Mapbox(не понравилось)→**Yandex + route_path** (финал). Mapbox-токен оставлен только для геокодинг-поиска в админке.
 - ENV: `NEXT_PUBLIC_YANDEX_MAPS_KEY` (карта), `NEXT_PUBLIC_MAPBOX_TOKEN` (поиск). Оба в `.env.local` (есть).
 
+## Часть 13. SEO-фундамент + гео-лендинги (2026-06-19)
+По итогам аудита конкурентов (`hayasa_seo_competitor_report.md`). Главный гэп рынка: per-tour schema нет НИ У КОГО (даже Hyur). Сборка PASS, schema verified в HTML через `next start`+curl.
+- [x] **`lib/seo.ts`** — `SITE_URL`, ORG/NAP-константы (env-gated, фейковый адрес в schema не пишем), `altLanguages()` hreflang+x-default, `OG_IMAGE=/hero-ararat.jpg`, `telDigits()`.
+- [x] **`components/seo/JsonLd.tsx`** — серверный рендер JSON-LD, XSS-safe (`<`→`<`).
+- [x] **`lib/schema.ts`** — билдеры: `organizationSchema` (TravelAgency), `websiteSchema`, `breadcrumbSchema`, `faqSchema`, `tourSchema` (TouristTrip+Offer, цена AMD; `aggregateRating` НЕ ставим без реальных отзывов).
+- [x] **Главная**: JSON-LD `TravelAgency`+`WebSite` (NAP из `getContact()`).
+- [x] **`/tours/[id]`**: JSON-LD `TouristTrip`+`Offer`+`BreadcrumbList`; метаданные дополнены og:image (обложка тура) + x-default через `altLanguages()`.
+- [x] **Корневой layout**: og:image/twitter дефолты (реальный asset, не localhost — ошибка Kanch), hreflang через `altLanguages()`.
+- [x] **Гео-лендинги** `/[locale]/destinations` + `/[locale]/destinations/[slug]` (5 направлений × 3 языка = 15 SSG-страниц): Гарни-Гегард, Хор-Вирап, Татев, Севан-Дилижан, Хндзореск. H1, intro, highlights, FAQ-аккордеон (`<details>`), цена «от» AMD, CTA на связанный тур/`/tours`. Контент 3 языка в `lib/destinations.ts`. JSON-LD `TouristDestination`+`FAQPage`+`BreadcrumbList`.
+- [x] **`sitemap.ts`**: добавлены `/destinations` + лендинги + hreflang `xhtml:link alternates` на каждой записи.
+- [x] **Навбар**: ссылка «Направления/Destinations/Ուղղություններ» (i18n-ключ `Nav.destinations` в en/ru/hy).
+- Проверено: typecheck PASS, `next build` PASS (15 destination-страниц пререндерены), curl-проверка — schema в HTML на главной/туре/лендинге, robots.txt + sitemap с hreflang отдаются.
+- [ ] **Env для полного NAP** (когда будут реальные данные): `NEXT_PUBLIC_BUSINESS_STREET/POSTAL/CITY/LAT/LNG`, `NEXT_PUBLIC_FACEBOOK_URL/INSTAGRAM_URL/TRIPADVISOR_URL`. Без них schema валидна, но без точного адреса/гео/sameAs.
+- Не сделано (следующие заходы по плану аудита): блог, off-site листинги (GBP/TripAdvisor/GetYourGuide), деплой+домен.
+
+## Часть 14. Фиксы по SEO-аудиту (новый seo-скилл, 6 субагентов, 2026-06-19)
+Прогнан seo-скилл (ECC) по локальной прод-сборке (localhost:3210) через 6 субагентов: technical/schema/sitemap/content/geo/local. Все правки verified через `next start`+curl. Build PASS (50 страниц).
+- [x] **C2 (critical):** `/tours` наследовал canonical+hreflang главной (`/en`) — добавлен `generateMetadata` (canonical `/en/tours`, alternates, og) + **ItemList**-схема (M5). Verified: canonical=`/en/tours`.
+- [x] **Sitemap:** убраны auth-страницы (`/my-tours`,`/profile`,`/auth`) — 9 URL; добавлен `<lastmod>`. Verified.
+- [x] **noindex** на `/my-tours`,`/profile` (server-layout) и `/auth` (export metadata) + `robots.ts` disallow `/admin` + account-страниц. Verified `robots: noindex, nofollow`.
+- [x] **FAQPage на турах:** `tourFaqItems()` генерит 5 Q&A из данных тура (цена/маршрут/языки/дата/бронь) 3 языка → `faqSchema` + рендер аккордеона. Verified 5 Question + FAQPage. (Закрывает GEO-гэп: на турах не было extractable Q&A.)
+- [x] **Тонкий контент лендингов** (~200 слов → ~400): добавлено поле `body` (narrative «Об этом месте») в `destinations.ts`, 5×3 языка, + рендер секции. Verified.
+- [x] **`touristType` локализован** (был хардкод EN на ru/hy) — через `lbl('touristType')`.
+- [x] **Meta description:** `clampDescription()` — обрезка по границе слова ≤155 (было `.slice(160)` мид-словом) на турах/лендингах/tours/destinations.
+- [x] **og:title** бренд-суффикс «— Hayasa Tours» на турах + tours list (M2).
+- [x] **openingHoursSpecification** в `TravelAgency`-схеме (env `NEXT_PUBLIC_BUSINESS_OPENS/CLOSES`, дефолт 09–21).
+- [x] **validThrough** убран из Offer (протухал = дата отправления).
+- [x] **`/llms.txt`** route-handler (`app/llms.txt/route.ts`) — карта сайта для AI-краулеров из туров+направлений. Verified.
+- [x] **`.env.example`** дополнен: `NEXT_PUBLIC_BUSINESS_STREET/POSTAL/CITY/LAT/LNG/OPENS/CLOSES` + `FACEBOOK/INSTAGRAM/TRIPADVISOR_URL` (sameAs).
+- **Ложная тревога аудита:** technical-агент сообщил «hreflang отсутствует» — на деле Next рендерит `hrefLang` (camelCase), агент грепнул с учётом регистра. hreflang есть и корректен.
+- Оценки аудита (по локальной сборке): Technical 71→улучшено, GEO 58 (llms.txt+tour-FAQ добавлены), Schema PASS, Local — ждёт реального NAP.
+- [ ] Контент-добор (по желанию): FAQ на лендингах 2→5, trust-блок (лицензия/о гиде), pickup-точки на турах, «tours from Yerevan» в H1 главной. Off-page: реальные sameAs (TripAdvisor/FB/IG), GBP.
+
 ## Нужно от пользователя (осталось)
 - [ ] Реальный контент: настоящие туры/цены/контакты через `/admin`.
 - [ ] Активировать уведомления: добавить `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` в `web/.env.local` (механизм уже в коде).

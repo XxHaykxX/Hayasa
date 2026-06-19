@@ -13,7 +13,7 @@ export async function listStops(tourId: string): Promise<StopRow[]> {
   const { data, error } = await client
     .from('stops')
     .select(
-      'id,tour_id,order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,stop_photos(id,stop_id,photo_url,order_index)',
+      'id,tour_id,order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,duration,destination_slug,stop_photos(id,stop_id,photo_url,order_index)',
     )
     .eq('tour_id', tourId)
     .order('order_index', { ascending: true });

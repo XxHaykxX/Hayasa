@@ -14,6 +14,7 @@ export const CONTENT_FIELDS: ContentField[] = [
   { key: 'contact_whatsapp', label: 'WhatsApp (ссылка)', group: 'contacts', placeholder: 'https://wa.me/37491234567' },
   { key: 'contact_telegram', label: 'Telegram (ссылка)', group: 'contacts', placeholder: 'https://t.me/hayasatours' },
   { key: 'contact_email', label: 'Email', group: 'contacts', placeholder: 'hello@hayasatours.am' },
+  { key: 'office_address', label: 'Адрес офиса (сбор группы)', group: 'contacts', placeholder: 'ул. Налбандяна 96, Ереван' },
   { key: 'hero_title', label: 'Заголовок Hero', group: 'hero', localized: true, placeholder: 'Откройте для себя' },
   { key: 'hero_subtitle', label: 'Подзаголовок Hero', group: 'hero', localized: true },
 ];
@@ -26,4 +27,5 @@ export type Contact = {
   whatsapp: string;
   telegram: string;
   email: string;
+  address: string;
 };

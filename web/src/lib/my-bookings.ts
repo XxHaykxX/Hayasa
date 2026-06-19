@@ -34,7 +34,7 @@ type Row = {
 };
 
 /** Returns the current user's bookings, or null when not logged in / no client. */
-export async function getMyBookings(): Promise<MyBooking[] | null> {
+export async function getMyBookings(locale = 'en'): Promise<MyBooking[] | null> {
   const supabase = getSupabase();
   if (!supabase) return null;
   const {
@@ -65,7 +65,7 @@ export async function getMyBookings(): Promise<MyBooking[] | null> {
         when: target >= now ? 'upcoming' : 'past',
         name: { hy: tt.title_hy, ru: tt.title_ru, en: tt.title_en },
         loc: loc(tt.location_hy, tt.location_ru, tt.location_en, ''),
-        date: formatTourDate(tt.date_start),
+        date: formatTourDate(tt.date_start, locale),
         target,
         cover: tt.cover_image_url ?? null,
         variant: i % 6,

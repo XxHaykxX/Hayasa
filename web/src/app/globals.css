@@ -64,6 +64,11 @@ body {
   color: #9DB6B4;
 }
 
+/* Yandex map — desaturate only the tile/ground pane so red pins + route stay colored. */
+.webmap-mono [class*="-ground-pane"] {
+  filter: grayscale(1) contrast(0.92) brightness(1.06);
+}
+
 /* Spotlight tour card — teal glow border that tracks the pointer on hover. */
 .spotlight-card {
   --mx: 50%;

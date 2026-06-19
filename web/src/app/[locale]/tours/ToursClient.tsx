@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Shell } from '@/components/layout/Shell';
 import { Icon } from '@/components/ui/Icon';
 import { TourCard } from '@/components/tours/TourCard';
+import { Reveal } from '@/components/motion/Reveal';
+import { Stagger } from '@/components/motion/Stagger';
 import { L, type Tour } from '@/lib/tours';
+import { ATTRACTIONS } from '@/lib/attractions';
 
 const monthIndex = (ts: number) => {
   const d = new Date(ts);
@@ -20,6 +23,21 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
   const [lang, setLang] = useState<'all' | 'AM' | 'RU' | 'EN'>('all');
   const [country, setCountry] = useState<'all' | 'am' | 'ge'>('all');
   const [locOpen, setLocOpen] = useState(false);
+  const [attraction, setAttraction] = useState('');
+  const [attrOpen, setAttrOpen] = useState(false);
+  const [attrQuery, setAttrQuery] = useState('');
+  const locRef = useRef<HTMLDivElement>(null);
+  const attrRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside them.
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (locRef.current && !locRef.current.contains(e.target as Node)) setLocOpen(false);
+      if (attrRef.current && !attrRef.current.contains(e.target as Node)) setAttrOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
 
   const dateFilters: [string, string][] = [
     ['this', t('thisMonth')],
@@ -28,9 +46,9 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
   ];
   const langFilters: ['all' | 'AM' | 'RU' | 'EN', string][] = [
     ['all', '🌐'],
-    ['AM', '🇦🇲'],
-    ['RU', '🇷🇺'],
-    ['EN', '🇬🇧'],
+    ['AM', 'HY'],
+    ['RU', 'RU'],
+    ['EN', 'EN'],
   ];
   const countries: ['all' | 'am' | 'ge', string][] = [
     ['all', t('allCountries')],
@@ -38,12 +56,24 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
     ['ge', t('georgia')],
   ];
 
+  // Curated top attractions; match by keyword against the tour's text.
+  const attrItems = ATTRACTIONS.map((a) => ({ label: L(a.label, locale), kw: L(a.kw, locale).toLowerCase() }));
+  const attrQ = attrQuery.trim().toLowerCase();
+  const attrList = attrQ ? attrItems.filter((a) => a.label.toLowerCase().includes(attrQ)) : attrItems;
+  const attrKw = attrItems.find((a) => a.label === attraction)?.kw ?? '';
+
   const curMonth = monthIndex(Date.now());
   const q = query.trim().toLowerCase();
   const filtered = tours.filter((tour) => {
     if (q && !`${L(tour.name, locale)} ${L(tour.loc, locale)}`.toLowerCase().includes(q)) return false;
     if (lang !== 'all' && !tour.langs.includes(lang)) return false;
     if (country !== 'all' && tour.country !== country) return false;
+    if (attrKw) {
+      const txt = `${L(tour.name, locale)} ${L(tour.loc, locale)} ${tour.stops
+        .map((s) => `${L(s.name, locale)} ${L(s.desc, locale)}`)
+        .join(' ')}`.toLowerCase();
+      if (!txt.includes(attrKw)) return false;
+    }
     if (dateF === 'this' && monthIndex(tour.target) !== curMonth) return false;
     if (dateF === 'next' && monthIndex(tour.target) !== curMonth + 1) return false;
     return true;
@@ -54,10 +84,10 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
   return (
     <Shell>
       <div className="bg-aqua border-b border-edge">
-        <div className="mx-auto max-w-[1200px] px-6 py-10">
+        <Reveal className="mx-auto max-w-[1200px] px-6 py-10" blur={false}>
           <h1 className="font-display text-[42px] font-bold text-navy leading-none mb-2">{t('title')}</h1>
           <p className="font-body text-muted">{t('subtitle', { count: filtered.length })}</p>
-        </div>
+        </Reveal>
       </div>
       <div className="mx-auto max-w-[1200px] px-6 py-8">
         <div className="flex flex-col gap-4 mb-9">
@@ -84,7 +114,7 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
                 </button>
               ))}
             </div>
-            <div className="relative">
+            <div className="relative" ref={locRef}>
               <button
                 onClick={() => setLocOpen((o) => !o)}
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-body text-sm font-medium transition-colors ${country !== 'all' ? 'bg-navy text-white border-navy' : 'bg-white border-edge text-navy hover:border-teal'}`}
@@ -109,6 +139,58 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
                 </div>
               )}
             </div>
+            <div className="relative" ref={attrRef}>
+              <button
+                onClick={() => setAttrOpen((o) => !o)}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-body text-sm font-medium transition-colors ${attraction ? 'border-navy bg-navy text-white' : 'border-edge bg-white text-navy hover:border-teal'}`}
+              >
+                {attraction || t('attractions')}
+                <Icon name="chevronDown" size={15} color={attraction ? '#fff' : '#6A8A88'} />
+              </button>
+              {attrOpen && (
+                <div className="absolute z-20 mt-2 w-72 overflow-hidden rounded-xl border border-edge bg-white shadow-[0_10px_30px_rgba(26,58,92,0.14)]">
+                  <div className="border-b border-edge p-2">
+                    <input
+                      value={attrQuery}
+                      onChange={(e) => setAttrQuery(e.target.value)}
+                      placeholder={t('attractionsSearch')}
+                      className="w-full rounded-lg border border-edge px-3 py-2 font-body text-sm text-navy outline-none focus:border-teal"
+                    />
+                  </div>
+                  <div className="max-h-60 overflow-auto py-1">
+                    {attraction && (
+                      <button
+                        onClick={() => {
+                          setAttraction('');
+                          setAttrOpen(false);
+                          setAttrQuery('');
+                        }}
+                        className="block w-full px-4 py-2 text-left font-body text-sm text-muted hover:bg-mist"
+                      >
+                        — {t('all')} —
+                      </button>
+                    )}
+                    {attrList.length === 0 ? (
+                      <div className="px-4 py-3 font-body text-sm text-muted">—</div>
+                    ) : (
+                      attrList.map((a) => (
+                        <button
+                          key={a.label}
+                          onClick={() => {
+                            setAttraction(a.label);
+                            setAttrOpen(false);
+                            setAttrQuery('');
+                          }}
+                          className={`block w-full px-4 py-2 text-left font-body text-sm transition-colors ${attraction === a.label ? 'bg-aqua font-bold text-teal' : 'text-navy hover:bg-mist'}`}
+                        >
+                          {a.label}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="inline-flex items-center gap-2">
               <span className="font-body text-sm text-muted">{t('guideLanguage')}</span>
               <div className="inline-flex items-center gap-1 rounded-full bg-white border border-edge px-3 py-1.5">
@@ -117,7 +199,7 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
                     key={k}
                     onClick={() => setLang(k)}
                     aria-label={k}
-                    className={`px-1.5 text-base rounded-full transition-all ${lang === k ? 'scale-110' : 'opacity-45 hover:opacity-90'}`}
+                    className={`rounded-full px-2.5 py-1 font-body text-[13px] font-bold transition-colors ${lang === k ? 'bg-teal text-white' : 'text-muted hover:text-navy'}`}
                   >
                     {f}
                   </button>
@@ -127,11 +209,11 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
           </div>
         </div>
         {filtered.length > 0 ? (
-          <div className="grid gap-6 lg:grid-cols-3 sm:grid-cols-2 grid-cols-1">
+          <Stagger inView={false} className="grid gap-6 lg:grid-cols-3 sm:grid-cols-2 grid-cols-1" itemClassName="h-full">
             {filtered.map((tour) => (
               <TourCard key={tour.id} tour={tour} />
             ))}
-          </div>
+          </Stagger>
         ) : (
           <p className="font-body text-muted py-16 text-center">{t('noResults')}</p>
         )}

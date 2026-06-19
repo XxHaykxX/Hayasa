@@ -6,4 +6,5 @@ export const CONTACT = {
   whatsapp: 'https://wa.me/37491234567',
   telegram: 'https://t.me/hayasatours',
   email: 'hello@hayasatours.am',
+  address: 'ул. Налбандяна 96, Ереван',
 };

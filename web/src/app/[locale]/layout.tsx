@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { Inter, Cormorant_Garamond, JetBrains_Mono } from 'next/font/google';
 import { routing } from '@/i18n/routing';
+import { OG_IMAGE, altLanguages } from '@/lib/seo';
 import '../globals.css';
 
 const body = Inter({ subsets: ['latin'], variable: '--font-body' });
@@ -27,7 +28,7 @@ export async function generateMetadata({ params: { locale } }: { params: { local
     description,
     alternates: {
       canonical: `/${locale}`,
-      languages: { en: '/en', ru: '/ru', hy: '/hy', 'x-default': '/en' },
+      languages: altLanguages(''),
     },
     openGraph: {
       type: 'website',
@@ -36,8 +37,9 @@ export async function generateMetadata({ params: { locale } }: { params: { local
       locale,
       title,
       description,
+      images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: 'Hayasa Tours — Armenia' }],
     },
-    twitter: { card: 'summary_large_image', title, description },
+    twitter: { card: 'summary_large_image', title, description, images: [OG_IMAGE] },
   };
 }
 

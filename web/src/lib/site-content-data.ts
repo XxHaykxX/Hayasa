@@ -63,5 +63,6 @@ export async function getContact(): Promise<Contact> {
     whatsapp: map.contact_whatsapp || CONTACT.whatsapp,
     telegram: map.contact_telegram || CONTACT.telegram,
     email: map.contact_email || CONTACT.email,
+    address: map.office_address || CONTACT.address,
   };
 }

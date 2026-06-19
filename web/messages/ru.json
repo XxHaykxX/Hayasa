@@ -1,10 +1,12 @@
 {
+  "Countdown": { "days": "ДН", "hrs": "Ч", "min": "МИН", "sec": "СЕК" },
   "Meta": {
     "title": "Hayasa Tours — групповые и культурные туры по Армении и Грузии",
     "description": "Путешествия в малых группах по древним монастырям, горным озёрам и высокогорным сёлам — с гидом на армянском, русском и английском."
   },
   "Nav": {
     "tours": "Туры",
+    "destinations": "Направления",
     "about": "О нас",
     "contact": "Контакты",
     "bookNow": "Забронировать"
@@ -57,6 +59,10 @@
     "all": "Все",
     "location": "Локация",
     "seatsLeft": "осталось мест: {count}",
+    "days": "{count, plural, one {# день} few {# дня} many {# дней} other {# дня}}",
+    "nights": "{count, plural, one {# ночь} few {# ночи} many {# ночей} other {# ночи}}",
+    "attractions": "Достопримечательности",
+    "attractionsSearch": "Поиск по достопримечательностям",
     "viewTour": "Подробнее",
     "guideLanguage": "Язык гида",
     "noResults": "Нет туров по выбранным фильтрам.",
@@ -74,7 +80,10 @@
     "perPerson": "֏ / чел.",
     "departsIn": "ВЫЕЗД ЧЕРЕЗ",
     "seatsRemaining": "Осталось мест",
-    "bookTour": "Забронировать тур"
+    "bookTour": "Забронировать тур",
+    "included": "Что входит",
+    "excluded": "Не входит",
+    "moreInfo": "Подробнее"
   },
   "Booking": {
     "back": "Назад к туру",

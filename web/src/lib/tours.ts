@@ -4,6 +4,7 @@
 
 export type Locale = 'en' | 'ru' | 'hy';
 export type Localized = Record<Locale, string>;
+export type LocalizedList = Record<Locale, string[]>;
 export type TourLang = 'AM' | 'RU' | 'EN';
 export type Country = 'am' | 'ge';
 
@@ -13,6 +14,8 @@ export type Stop = {
   lat: number;
   lng: number;
   photos?: string[];
+  duration?: string | null; // e.g. "50–60 мин" — shown with a clock icon
+  destinationSlug?: string | null; // links to a /destinations/[slug] landing page
 };
 
 export type Tour = {
@@ -32,7 +35,12 @@ export type Tour = {
   description: Localized;
   stops: Stop[];
   cover?: string | null;
+  photos?: string[]; // tour-level gallery (cover + extra images) for the card/detail
   routePath?: [number, number][] | null; // precomputed road geometry [lat,lng]
+  inclusions?: LocalizedList; // "what's included" bullet list per locale
+  exclusions?: LocalizedList; // "not included" bullet list per locale
+  durationDays?: number; // tour length for the listing badge (default 1)
+  durationNights?: number; // overnight count (0 = day trip)
 };
 
 const at = (iso: string) => new Date(iso).getTime();
@@ -69,19 +77,29 @@ export const TOURS: Tour[] = [
       {
         name: { en: 'Garni Temple', ru: 'Храм Гарни', hy: 'Գառնիի տաճար' },
         desc: { en: 'The only standing Greco-Roman colonnaded temple in the region, perched above the Azat gorge.', ru: 'Единственный сохранившийся греко-римский колоннадный храм в регионе, над ущельем Азат.', hy: 'Տարածաշրջանի միակ կանգուն հունահռոմեական սյունազարդ տաճարը՝ Ազատի կիրճի վրա.' },
-        lat: 40.1122, lng: 44.7300,
+        lat: 40.1122, lng: 44.7300, duration: '50–60 мин', destinationSlug: 'garni-geghard',
       },
       {
         name: { en: 'Symphony of Stones', ru: 'Симфония камней', hy: 'Քարերի սիմֆոնիա' },
         desc: { en: 'A short walk down the canyon to towering hexagonal basalt columns.', ru: 'Короткая прогулка по каньону к гигантским шестигранным базальтовым колоннам.', hy: 'Կարճ զբոսանք կիրճով դեպի վեցանկյուն բազալտե հսկա սյուները.' },
-        lat: 40.1156, lng: 44.7228,
+        lat: 40.1156, lng: 44.7228, duration: '30–40 мин',
       },
       {
         name: { en: 'Geghard Monastery', ru: 'Монастырь Гегард', hy: 'Գեղարդի վանք' },
         desc: { en: 'Rock-hewn churches carved into the cliff — a UNESCO World Heritage site. Lunch in the village.', ru: 'Вырубленные в скале церкви — объект ЮНЕСКО. Обед в селе.', hy: 'Ժայռի մեջ փորված եկեղեցիներ՝ ՅՈՒՆԵՍԿՕ-ի ժառանգություն. Ճաշ գյուղում.' },
-        lat: 40.1408, lng: 44.8181,
+        lat: 40.1408, lng: 44.8181, duration: '60–70 мин', destinationSlug: 'garni-geghard',
       },
     ],
+    inclusions: {
+      ru: ['Профессиональный гид (RU + EN)', 'Транспорт с кондиционером', 'Вода и выпечка', 'Входные билеты', 'Wi-Fi в транспорте', 'Страховка'],
+      en: ['Professional guide (RU + EN)', 'Air-conditioned vehicle', 'Bottled water & pastries', 'Admission tickets', 'Wi-Fi in the vehicle', 'Insurance'],
+      hy: ['Պրոֆեսիոնալ ուղեկցորդ (RU + EN)', 'Լավորակ տրանսպորտ', 'Ջուր և թխվածք', 'Մուտքի տոմսեր', 'Wi-Fi տրանսպորտում', 'Ապահովագրություն'],
+    },
+    exclusions: {
+      ru: ['Обед (3 900 – 4 900 драм)', 'Трансфер в отель (финиш — наш офис)'],
+      en: ['Lunch (3,900 – 4,900 AMD)', 'Hotel drop-off (final stop: our office)'],
+      hy: ['Ճաշ (3 900 – 4 900 դրամ)', 'Հյուրանոց հասցնելը (վերջին կանգառը՝ մեր գրասենյակը)'],
+    },
   },
   {
     id: 'sevan',
@@ -208,6 +226,8 @@ export const TOURS: Tour[] = [
     langs: ['RU', 'EN'],
     variant: 4,
     tag: TAG.border,
+    durationDays: 2,
+    durationNights: 1,
     description: {
       en: 'A two-day cross-border escape to the Georgian capital: sulphur baths, balconied old streets and Georgian wine. Bring your passport — we cross the Bagratashen–Sadakhlo border together.',
       ru: 'Двухдневная поездка через границу в столицу Грузии: серные бани, старые улочки с балконами и грузинское вино. Возьмите паспорт — границу Баграташен–Садахло проходим вместе.',
@@ -272,9 +292,10 @@ export const TOURS: Tour[] = [
 
 export const getTour = (id: string): Tour => TOURS.find((t) => t.id === id) ?? TOURS[0];
 
-// Pick a locale-keyed string, falling back to English.
+// Pick a locale-keyed string. HY is the primary language, so empty values fall
+// back to HY first (then ru/en).
 export function L(v: Localized, locale: string): string {
-  return v[locale as Locale] ?? v.en;
+  return v[locale as Locale] || v.hy || v.ru || v.en || '';
 }
 
 export const langLabel = (langs: TourLang[]) => langs.join(' · ');

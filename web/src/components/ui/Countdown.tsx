@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 function useCountdown(target: number) {
   // null until mounted → server and first client render match (no hydration mismatch).
@@ -26,11 +27,12 @@ function useCountdown(target: number) {
 
 export function Countdown({ target, size = 'xl' }: { target: number; size?: 'xl' | 'sm' }) {
   const t = useCountdown(target);
+  const tr = useTranslations('Countdown');
   const units: [string, string][] = [
-    [t.d, 'DAYS'],
-    [t.h, 'HRS'],
-    [t.m, 'MIN'],
-    [t.s, 'SEC'],
+    [t.d, tr('days')],
+    [t.h, tr('hrs')],
+    [t.m, tr('min')],
+    [t.s, tr('sec')],
   ];
 
   if (size === 'sm') {

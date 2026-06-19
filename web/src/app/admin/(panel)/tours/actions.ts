@@ -17,6 +17,20 @@ function revalidatePublic() {
   revalidatePath('/[locale]/tours/[id]', 'page');
 }
 
+// One textarea per locale, one bullet per line → { ru:[], hy:[], en:[] } jsonb.
+function listFrom(formData: FormData, base: string) {
+  const lines = (v: FormDataEntryValue | null) =>
+    String(v ?? '')
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  return {
+    ru: lines(formData.get(`${base}_ru`)),
+    hy: lines(formData.get(`${base}_hy`)),
+    en: lines(formData.get(`${base}_en`)),
+  };
+}
+
 function parseForm(formData: FormData) {
   return tourSchema.safeParse({
     title_hy: formData.get('title_hy'),
@@ -32,6 +46,8 @@ function parseForm(formData: FormData) {
     country: formData.get('country'),
     date_start: formData.get('date_start'),
     price: formData.get('price'),
+    duration_days: formData.get('duration_days') ?? 1,
+    duration_nights: formData.get('duration_nights') ?? 0,
     max_seats: formData.get('max_seats'),
     booked_seats: formData.get('booked_seats') ?? 0,
     language: formData.get('language'),
@@ -39,22 +55,50 @@ function parseForm(formData: FormData) {
   });
 }
 
-/** Upload a cover image to storage; returns its public URL, or null if no file. */
-async function uploadCover(file: FormDataEntryValue | null): Promise<string | null> {
-  if (!file || typeof file === 'string') return null;
-  const f = file as File;
-  if (!f.size) return null;
-  const invalid = validateImage(f);
-  if (invalid) throw new Error(invalid);
-  const db = createServiceSupabase();
-  if (!db) return null;
-  const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const path = `covers/${crypto.randomUUID()}.${ext}`;
-  const { error } = await db.storage
-    .from(BUCKET)
-    .upload(path, f, { contentType: f.type || 'image/jpeg', upsert: false });
-  if (error) throw new Error('Не удалось загрузить обложку: ' + error.message);
-  return db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+type DB = NonNullable<ReturnType<typeof createServiceSupabase>>;
+
+/** Upload many images to storage; returns their public URLs. Validates each. */
+async function uploadMany(db: DB, files: FormDataEntryValue[]): Promise<string[]> {
+  const out: string[] = [];
+  for (const file of files) {
+    if (!file || typeof file === 'string') continue;
+    const f = file as File;
+    if (!f.size) continue;
+    const invalid = validateImage(f);
+    if (invalid) throw new Error(`${f.name}: ${invalid}`);
+    const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const path = `covers/${crypto.randomUUID()}.${ext}`;
+    const { error } = await db.storage
+      .from(BUCKET)
+      .upload(path, f, { contentType: f.type || 'image/jpeg', upsert: false });
+    if (error) throw new Error('Не удалось загрузить фото: ' + error.message);
+    out.push(db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl);
+  }
+  return out;
+}
+
+/** Append photos to a tour's gallery after the current max order_index. */
+async function appendTourPhotos(db: DB, tourId: string, urls: string[]) {
+  if (urls.length === 0) return;
+  const { data } = await db
+    .from('tour_photos')
+    .select('order_index')
+    .eq('tour_id', tourId)
+    .order('order_index', { ascending: false })
+    .limit(1);
+  const start = ((data?.[0]?.order_index as number | undefined) ?? -1) + 1;
+  await db.from('tour_photos').insert(urls.map((u, i) => ({ tour_id: tourId, photo_url: u, order_index: start + i })));
+}
+
+/** Keep cover_image_url in sync with the first gallery photo. */
+async function recomputeCover(db: DB, tourId: string) {
+  const { data } = await db
+    .from('tour_photos')
+    .select('photo_url')
+    .eq('tour_id', tourId)
+    .order('order_index', { ascending: true })
+    .limit(1);
+  await db.from('tours').update({ cover_image_url: (data?.[0]?.photo_url as string | undefined) ?? null }).eq('id', tourId);
 }
 
 function toRow(input: ReturnType<typeof tourSchema.parse>) {
@@ -72,6 +116,8 @@ function toRow(input: ReturnType<typeof tourSchema.parse>) {
     country: input.country,
     date_start: new Date(input.date_start).toISOString(),
     price: input.price,
+    duration_days: input.duration_days,
+    duration_nights: input.duration_nights,
     max_seats: input.max_seats,
     // booked_seats is maintained automatically by the sync_booked_seats trigger.
     language: input.language,
@@ -88,16 +134,24 @@ export async function createTour(_prev: ActionState, formData: FormData): Promis
   const db = createServiceSupabase();
   if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
 
-  let cover: string | null = null;
+  let urls: string[] = [];
   try {
-    cover = await uploadCover(formData.get('cover'));
+    urls = await uploadMany(db, formData.getAll('photos'));
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
-  const { error } = await db
+  const { data: inserted, error } = await db
     .from('tours')
-    .insert({ ...toRow(parsed.data), cover_image_url: cover });
+    .insert({
+      ...toRow(parsed.data),
+      cover_image_url: urls[0] ?? null,
+      inclusions: listFrom(formData, 'inclusions'),
+      exclusions: listFrom(formData, 'exclusions'),
+    })
+    .select('id')
+    .single();
   if (error) return { ok: false, error: error.message };
+  await appendTourPhotos(db, inserted.id as string, urls);
 
   revalidatePath('/admin/tours');
   revalidatePublic();
@@ -113,17 +167,24 @@ export async function updateTour(id: string, _prev: ActionState, formData: FormD
   const db = createServiceSupabase();
   if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
 
-  let cover: string | null = null;
+  let urls: string[] = [];
   try {
-    cover = await uploadCover(formData.get('cover'));
+    urls = await uploadMany(db, formData.getAll('photos'));
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
-  const patch: Record<string, unknown> = toRow(parsed.data);
-  if (cover) patch.cover_image_url = cover; // keep existing cover if none uploaded
+  const patch: Record<string, unknown> = {
+    ...toRow(parsed.data),
+    inclusions: listFrom(formData, 'inclusions'),
+    exclusions: listFrom(formData, 'exclusions'),
+  };
 
   const { error } = await db.from('tours').update(patch).eq('id', id);
   if (error) return { ok: false, error: error.message };
+  if (urls.length > 0) {
+    await appendTourPhotos(db, id, urls);
+    await recomputeCover(db, id); // cover follows the first gallery photo
+  }
 
   revalidatePath('/admin/tours');
   revalidatePath(`/admin/tours/${id}/edit`);
@@ -146,5 +207,34 @@ export async function toggleTourActive(id: string, next: boolean): Promise<void>
   if (!db) return;
   await db.from('tours').update({ is_active: next }).eq('id', id);
   revalidatePath('/admin/tours');
+  revalidatePublic();
+}
+
+/** Persist a new photo order (array of photo ids, first = cover). */
+export async function reorderTourPhotos(tourId: string, orderedIds: string[]): Promise<void> {
+  await requireAdmin();
+  const db = createServiceSupabase();
+  if (!db) return;
+  await Promise.all(
+    orderedIds.map((id, i) => db.from('tour_photos').update({ order_index: i }).eq('id', id).eq('tour_id', tourId)),
+  );
+  await recomputeCover(db, tourId); // cover follows the new first photo
+  revalidatePath(`/admin/tours/${tourId}/edit`);
+  revalidatePublic();
+}
+
+export async function deleteTourPhoto(photoId: string, tourId: string): Promise<void> {
+  await requireAdmin();
+  const db = createServiceSupabase();
+  if (!db) return;
+  const { data: row } = await db.from('tour_photos').select('photo_url').eq('id', photoId).single();
+  await db.from('tour_photos').delete().eq('id', photoId);
+  if (row?.photo_url) {
+    const marker = `/${BUCKET}/`;
+    const idx = (row.photo_url as string).indexOf(marker);
+    if (idx !== -1) await db.storage.from(BUCKET).remove([(row.photo_url as string).slice(idx + marker.length)]);
+  }
+  await recomputeCover(db, tourId);
+  revalidatePath(`/admin/tours/${tourId}/edit`);
   revalidatePublic();
 }

@@ -1,5 +1,5 @@
 import { listBookings } from '@/lib/admin-bookings-data';
-import { STATUS_LABEL, STATUS_COLOR, BOOKING_STATUSES } from '@/lib/admin-bookings';
+import { STATUS_LABEL, BOOKING_STATUSES } from '@/lib/admin-bookings';
 import StatusSelect from './StatusSelect';
 
 export const dynamic = 'force-dynamic';
@@ -60,15 +60,11 @@ export default async function AdminBookingsPage({
                 <th className={th}>Имя</th>
                 <th className={th}>Телефон</th>
                 <th className={th}>Мест</th>
-                <th className={th}>Источник</th>
                 <th className={th}>Статус</th>
-                <th className={th}>Изменить</th>
               </tr>
             </thead>
             <tbody>
-              {bookings.map((b) => {
-                const color = STATUS_COLOR[b.status];
-                return (
+              {bookings.map((b) => (
                   <tr key={b.id}>
                     <td className={td}>{fmtDate(b.created_at)}</td>
                     <td className={td}>{b.tours?.title_ru ?? <span className="text-[#9DB6B4]">{b.notes ?? '—'}</span>}</td>
@@ -79,21 +75,11 @@ export default async function AdminBookingsPage({
                       </a>
                     </td>
                     <td className={td}>{b.seats}</td>
-                    <td className={td}>{b.source}</td>
-                    <td className={td}>
-                      <span
-                        className="rounded-full px-2.5 py-1 text-xs font-semibold"
-                        style={{ background: color.bg, color: color.fg }}
-                      >
-                        {STATUS_LABEL[b.status]}
-                      </span>
-                    </td>
                     <td className={td}>
                       <StatusSelect id={b.id} value={b.status} />
                     </td>
                   </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
         </div>

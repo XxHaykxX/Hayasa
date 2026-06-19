@@ -1,10 +1,12 @@
 {
+  "Countdown": { "days": "DAYS", "hrs": "HRS", "min": "MIN", "sec": "SEC" },
   "Meta": {
     "title": "Hayasa Tours — Group & cultural tours across Armenia & Georgia",
     "description": "Small-group journeys through ancient monasteries, mountain lakes and highland villages — guided in Armenian, Russian and English."
   },
   "Nav": {
     "tours": "Tours",
+    "destinations": "Destinations",
     "about": "About",
     "contact": "Contact",
     "bookNow": "Book Now"
@@ -57,6 +59,10 @@
     "all": "All",
     "location": "Location",
     "seatsLeft": "{count, plural, one {# seat left} other {# seats left}}",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "attractions": "Attractions",
+    "attractionsSearch": "Search attractions",
     "viewTour": "View Tour",
     "guideLanguage": "Guide language",
     "noResults": "No tours match your filters.",
@@ -74,7 +80,10 @@
     "perPerson": "֏ / person",
     "departsIn": "DEPARTS IN",
     "seatsRemaining": "Seats remaining",
-    "bookTour": "Book This Tour"
+    "bookTour": "Book This Tour",
+    "included": "What's included",
+    "excluded": "Not included",
+    "moreInfo": "Details"
   },
   "Booking": {
     "back": "Back to tour",
