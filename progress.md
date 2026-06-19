@@ -109,6 +109,16 @@
 Код/репо: 12 файлов миграций; `lib/format.ts`/`my-bookings.ts`/`site-content-data.ts`/`next.config.mjs` на месте.
 Git main: всё закоммичено и запушено. E2E 12/12 PASS после Tailwind-переписки, 0 console errors.
 
+## Часть 12. Карта, поиск места, аккаунты, уведомления (2026-06-19)
+- [x] **Карта маршрута:** рендер на **Yandex Maps** (`WebMap`), рисует precomputed дорогу `tours.route_path` + номерные маркеры (фолбэк — прямая). Роутинг-ключ Yandex НЕ нужен.
+- [x] **Геометрия дорог:** бесплатный **OSRM** (`lib/osrm.ts`), сохраняется в `tours.route_path` (jsonb [lat,lng]). Пересчёт авто при add/edit/delete/reorder остановок.
+- [x] **Поиск места в админке:** `PlaceSearch` — автокомплит через **Mapbox Geocoding** (fetch, токен `NEXT_PUBLIC_MAPBOX_TOKEN`, страны am/ge). Выбор → координаты подставляются сами. Проверено: «Гарни»→40.1139,44.7317.
+- [x] **Drag-реордер остановок:** перетаскивание карточек → `reorderStops` → пересчёт маршрута.
+- [x] **Регистрация юзера** на `/auth` (`signUp` + переключатель вход/регистрация, обработка подтверждения почты). i18n-ключи добавлены. Google авто-создаёт.
+- [x] **Уведомление о брони админу:** `lib/notify.ts` (Telegram) + `/api/notify-booking` (сверка брони по id) + вызов из `BookingClient`. Активируется `TELEGRAM_BOT_TOKEN`+`TELEGRAM_CHAT_ID`.
+- История карты: Yandex(straight)→multiRouter(только точки, роутинг-ключ платный)→Leaflet/OSM(не понравился вид)→Mapbox(не понравилось)→**Yandex + route_path** (финал). Mapbox-токен оставлен только для геокодинг-поиска в админке.
+- ENV: `NEXT_PUBLIC_YANDEX_MAPS_KEY` (карта), `NEXT_PUBLIC_MAPBOX_TOKEN` (поиск). Оба в `.env.local` (есть).
+
 ## Нужно от пользователя (осталось)
 - [ ] Реальный контент: настоящие туры/цены/контакты через `/admin`.
 - [ ] Активировать уведомления: добавить `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` в `web/.env.local` (механизм уже в коде).
