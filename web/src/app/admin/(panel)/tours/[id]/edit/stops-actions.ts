@@ -94,6 +94,17 @@ export async function updateStop(
   return { ok: true };
 }
 
+export async function reorderStops(tourId: string, orderedIds: string[]): Promise<void> {
+  await requireAdmin();
+  const db = createServiceSupabase();
+  if (!db) return;
+  for (let i = 0; i < orderedIds.length; i++) {
+    await db.from('stops').update({ order_index: i }).eq('id', orderedIds[i]).eq('tour_id', tourId);
+  }
+  await recomputeRoute(db, tourId);
+  revalidate(tourId);
+}
+
 export async function deleteStop(stopId: string, tourId: string): Promise<void> {
   await requireAdmin();
   const db = createServiceSupabase();

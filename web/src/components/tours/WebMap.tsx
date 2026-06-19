@@ -1,71 +1,86 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import 'leaflet/dist/leaflet.css';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { useLocale } from 'next-intl';
 import type { Stop } from '@/lib/tours';
 
+const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 const CORAL = '#E2685E';
 
-// Numbered teardrop marker (no image assets → no broken-icon issues).
-function pinHtml(n: number): string {
-  return `<div style="width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${CORAL};box-shadow:0 4px 10px rgba(226,104,94,0.4);display:flex;align-items:center;justify-content:center;border:2px solid #fff">
-    <span style="transform:rotate(45deg);color:#fff;font-weight:700;font-size:12px;font-family:monospace">${n}</span>
-  </div>`;
+function pinEl(n: number): HTMLDivElement {
+  const el = document.createElement('div');
+  el.style.cssText = `width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${CORAL};box-shadow:0 4px 10px rgba(226,104,94,0.4);display:flex;align-items:center;justify-content:center;border:2px solid #fff`;
+  el.innerHTML = `<span style="transform:rotate(45deg);color:#fff;font-weight:700;font-size:12px;font-family:monospace">${n}</span>`;
+  return el;
+}
+
+// Switch map labels to the site language (best-effort; falls back to local name).
+function setLanguage(map: mapboxgl.Map, lang: string) {
+  try {
+    const field = ['coalesce', ['get', `name_${lang}`], ['get', 'name']];
+    for (const layer of map.getStyle().layers ?? []) {
+      if (layer.type === 'symbol' && (layer.layout as Record<string, unknown> | undefined)?.['text-field']) {
+        map.setLayoutProperty(layer.id, 'text-field', field as unknown as mapboxgl.Expression);
+      }
+    }
+  } catch {
+    /* ignore */
+  }
 }
 
 export function WebMap({ stops, route }: { stops: Stop[]; route?: [number, number][] | null }) {
   const ref = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<unknown>(null);
+  const locale = useLocale();
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!ref.current) return;
-      const L = (await import('leaflet')).default;
-      if (cancelled || !ref.current) return;
+    if (!TOKEN || !ref.current) return;
+    mapboxgl.accessToken = TOKEN;
 
-      // Guard against double-init (StrictMode / re-render).
-      if (mapRef.current) {
-        (mapRef.current as { remove: () => void }).remove();
-        mapRef.current = null;
-      }
+    const map = new mapboxgl.Map({
+      container: ref.current,
+      style: 'mapbox://styles/mapbox/navigation-day-v1',
+      scrollZoom: false,
+      attributionControl: true,
+    });
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-left');
 
-      const map = L.map(ref.current, { scrollWheelZoom: false });
-      mapRef.current = map;
+    map.on('load', () => {
+      setLanguage(map, locale);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap',
-        maxZoom: 19,
-      }).addTo(map);
-
-      const stopLatLng = stops.map((s) => [s.lat, s.lng] as [number, number]);
       const hasRoad = Array.isArray(route) && route.length > 1;
-      const line = hasRoad ? (route as [number, number][]) : stopLatLng;
+      const latlng = hasRoad ? (route as [number, number][]) : stops.map((s) => [s.lat, s.lng] as [number, number]);
+      const coords = latlng.map(([lat, lng]) => [lng, lat]);
 
-      L.polyline(line, {
-        color: CORAL,
-        weight: 5,
-        opacity: 0.9,
-        ...(hasRoad ? {} : { dashArray: '6 10' }),
-      }).addTo(map);
-
-      stops.forEach((s, i) => {
-        L.marker([s.lat, s.lng], {
-          icon: L.divIcon({ html: pinHtml(i + 1), className: '', iconSize: [28, 28], iconAnchor: [14, 28] }),
-        }).addTo(map);
+      map.addSource('route', {
+        type: 'geojson',
+        data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } },
+      });
+      map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': CORAL, 'line-width': 5, ...(hasRoad ? {} : { 'line-dasharray': [1, 2] }) },
       });
 
-      map.fitBounds(L.latLngBounds(line), { padding: [40, 40] });
-    })();
+      stops.forEach((s, i) => new mapboxgl.Marker({ element: pinEl(i + 1) }).setLngLat([s.lng, s.lat]).addTo(map));
 
-    return () => {
-      cancelled = true;
-      if (mapRef.current) {
-        (mapRef.current as { remove: () => void }).remove();
-        mapRef.current = null;
-      }
-    };
-  }, [stops, route]);
+      const b = new mapboxgl.LngLatBounds();
+      coords.forEach((c) => b.extend(c as [number, number]));
+      map.fitBounds(b, { padding: 50, duration: 0 });
+    });
 
-  return <div ref={ref} className="h-[300px] rounded-[14px] overflow-hidden border border-edge" style={{ background: '#e9f4f1' }} />;
+    return () => map.remove();
+  }, [stops, route, locale]);
+
+  if (!TOKEN) {
+    return (
+      <div className="flex h-[300px] items-center justify-center rounded-[14px] border border-dashed border-edge bg-aqua text-sm text-muted">
+        Карта появится после настройки Mapbox (NEXT_PUBLIC_MAPBOX_TOKEN).
+      </div>
+    );
+  }
+  return <div ref={ref} className="h-[300px] rounded-[14px] overflow-hidden border border-edge" />;
 }
