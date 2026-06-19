@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/admin-auth';
 import { createServiceSupabase } from '@/lib/supabase-server';
 import { stopSchema } from '@/lib/admin-stops';
 import { validateImage } from '@/lib/admin-tours';
+import { fetchRoutePath } from '@/lib/osrm';
 
 export type StopActionState = { ok: boolean; error?: string };
 
@@ -43,6 +44,25 @@ const revalidate = (tourId: string) => {
   revalidatePath('/[locale]/tours/[id]', 'page'); // public detail shows stop photos
 };
 
+// Recompute the cached road geometry from the tour's stops (best-effort).
+async function recomputeRoute(db: ReturnType<typeof createServiceSupabase>, tourId: string) {
+  if (!db) return;
+  const { data } = await db
+    .from('stops')
+    .select('latitude,longitude')
+    .eq('tour_id', tourId)
+    .order('order_index', { ascending: true });
+  const pts = (data ?? [])
+    .filter((s) => s.latitude != null && s.longitude != null)
+    .map((s) => [s.latitude as number, s.longitude as number] as [number, number]);
+  if (pts.length < 2) {
+    await db.from('tours').update({ route_path: null }).eq('id', tourId);
+    return;
+  }
+  const path = await fetchRoutePath(pts);
+  if (path) await db.from('tours').update({ route_path: path }).eq('id', tourId);
+}
+
 export async function createStop(tourId: string, _prev: StopActionState, formData: FormData): Promise<StopActionState> {
   await requireAdmin();
   const parsed = parseStop(formData);
@@ -51,6 +71,7 @@ export async function createStop(tourId: string, _prev: StopActionState, formDat
   if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
   const { error } = await db.from('stops').insert({ tour_id: tourId, ...toStopRow(parsed.data) });
   if (error) return { ok: false, error: error.message };
+  await recomputeRoute(db, tourId);
   revalidate(tourId);
   return { ok: true };
 }
@@ -68,6 +89,7 @@ export async function updateStop(
   if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
   const { error } = await db.from('stops').update(toStopRow(parsed.data)).eq('id', stopId);
   if (error) return { ok: false, error: error.message };
+  await recomputeRoute(db, tourId);
   revalidate(tourId);
   return { ok: true };
 }
@@ -77,6 +99,7 @@ export async function deleteStop(stopId: string, tourId: string): Promise<void> 
   const db = createServiceSupabase();
   if (!db) return;
   await db.from('stops').delete().eq('id', stopId); // cascade removes stop_photos rows
+  await recomputeRoute(db, tourId);
   revalidate(tourId);
 }
 

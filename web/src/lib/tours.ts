@@ -32,6 +32,7 @@ export type Tour = {
   description: Localized;
   stops: Stop[];
   cover?: string | null;
+  routePath?: [number, number][] | null; // precomputed road geometry [lat,lng]
 };
 
 const at = (iso: string) => new Date(iso).getTime();

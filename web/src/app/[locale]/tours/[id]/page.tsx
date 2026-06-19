@@ -125,7 +125,7 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
 
             {/* map */}
             <div className="font-body text-xs font-bold tracking-widest text-amber mb-4">{t('routeMap')}</div>
-            <WebMap stops={tour.stops} />
+            <WebMap stops={tour.stops} route={tour.routePath} />
           </div>
 
           {/* right sticky */}

@@ -122,6 +122,7 @@ type DbTour = {
   booked_seats: number;
   language: string;
   cover_image_url: string | null;
+  route_path: [number, number][] | null;
   stops?: DbStop[] | null;
 };
 
@@ -159,11 +160,12 @@ function mapTour(row: DbTour, variant: number): Tour {
     description: loc(row.description_hy, row.description_ru, row.description_en, ''),
     stops,
     cover: row.cover_image_url ?? null,
+    routePath: row.route_path ?? null,
   };
 }
 
 const TOUR_SELECT =
-  'id,title_hy,title_ru,title_en,description_hy,description_ru,description_en,location_hy,location_ru,location_en,category,country,date_start,price,max_seats,booked_seats,language,cover_image_url,stops(order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,stop_photos(photo_url,order_index))';
+  'id,title_hy,title_ru,title_en,description_hy,description_ru,description_en,location_hy,location_ru,location_en,category,country,date_start,price,max_seats,booked_seats,language,cover_image_url,route_path,stops(order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,stop_photos(photo_url,order_index))';
 
 /** All active tours for the public site. Falls back to mock TOURS. */
 export async function getPublicTours(): Promise<Tour[]> {
