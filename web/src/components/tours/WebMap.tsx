@@ -7,6 +7,7 @@ import { useLocale } from 'next-intl';
 import type { Stop } from '@/lib/tours';
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+const STYLE = process.env.NEXT_PUBLIC_MAPBOX_STYLE || 'mapbox://styles/mapbox/streets-v12';
 const CORAL = '#E2685E';
 
 function pinEl(n: number): HTMLDivElement {
@@ -40,7 +41,7 @@ export function WebMap({ stops, route }: { stops: Stop[]; route?: [number, numbe
 
     const map = new mapboxgl.Map({
       container: ref.current,
-      style: 'mapbox://styles/mapbox/navigation-day-v1',
+      style: STYLE,
       scrollZoom: false,
       attributionControl: true,
     });
