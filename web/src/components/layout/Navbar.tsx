@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import { Icon } from '@/components/ui/Icon';
 import { Btn } from '@/components/ui/Btn';
-import { LangSwitcher } from '@/components/ui/LangSwitcher';
 
 const LINKS = [
   { key: 'home', href: '/' },
@@ -52,7 +51,6 @@ export function Navbar() {
           ))}
         </nav>
         <div className="hidden md:flex items-center gap-4">
-          <LangSwitcher />
           <Btn variant="amber" size="sm" href="/tours">
             {t('bookNow')}
           </Btn>
@@ -68,8 +66,7 @@ export function Navbar() {
               {t(l.key)}
             </Link>
           ))}
-          <div className="flex items-center justify-between pt-2">
-            <LangSwitcher />
+          <div className="flex items-center justify-end pt-2">
             <Btn variant="amber" size="sm" href="/tours">
               {t('bookNow')}
             </Btn>
