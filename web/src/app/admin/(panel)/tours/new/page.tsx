@@ -8,7 +8,10 @@ export const dynamic = 'force-dynamic';
 export default function NewTourPage() {
   return (
     <div className="max-w-[720px]">
-      <PageHeader title="Новый тур" />
+      <PageHeader
+        title="Новый тур"
+        subtitle="Заполните основное и сохраните — сразу откроется редактор, где добавите остановки, фото, координаты и регион."
+      />
       <ImportFromUrl />
       <TourForm action={createTour} />
     </div>

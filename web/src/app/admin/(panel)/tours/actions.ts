@@ -157,7 +157,8 @@ export async function createTour(_prev: ActionState, formData: FormData): Promis
 
   revalidatePath('/admin/tours');
   revalidatePublic();
-  redirect('/admin/tours');
+  // Continue in one flow: land on the editor to add stops/photos right away.
+  redirect(`/admin/tours/${inserted.id as string}/edit`);
 }
 
 export async function updateTour(id: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
