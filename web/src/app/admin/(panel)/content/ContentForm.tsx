@@ -54,17 +54,12 @@ export default function ContentForm({
           {CONTENT_FIELDS.filter((f) => f.group === 'hero').map((f) => (
             <div key={f.key}>
               <label className={labelCls}>{f.label}</label>
-              <div className="grid gap-2">
-                {(['ru', 'hy', 'en'] as const).map((lng) => (
-                  <input
-                    key={lng}
-                    name={`${f.key}_${lng}`}
-                    className="hb-in"
-                    defaultValue={values[f.key]?.[lng] ?? ''}
-                    placeholder={lng.toUpperCase()}
-                  />
-                ))}
-              </div>
+              <input
+                name={`${f.key}_hy`}
+                className="hb-in"
+                defaultValue={values[f.key]?.hy ?? ''}
+                placeholder={f.placeholder}
+              />
             </div>
           ))}
         </div>

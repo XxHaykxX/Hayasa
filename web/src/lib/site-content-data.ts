@@ -34,7 +34,8 @@ export async function getContentLocalized(locale: string): Promise<Record<string
     const col = (['ru', 'hy', 'en'].includes(locale) ? `value_${locale}` : 'value_ru') as keyof ContentRow;
     const map: Record<string, string> = {};
     for (const row of data as ContentRow[]) {
-      const v = (row[col] as string | null) || row.value_ru;
+      // HY-primary fallback: content is entered in Armenian only.
+      const v = (row[col] as string | null) || row.value_hy || row.value_ru;
       if (v) map[row.key] = v;
     }
     return map;

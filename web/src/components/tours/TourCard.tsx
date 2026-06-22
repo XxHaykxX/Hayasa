@@ -7,7 +7,7 @@ import { Link } from '@/i18n/navigation';
 import { Icon } from '@/components/ui/Icon';
 import { Scenery } from '@/components/ui/Scenery';
 import { Countdown } from '@/components/ui/Countdown';
-import { L, type Tour } from '@/lib/tours';
+import { L, pickList, type Tour } from '@/lib/tours';
 
 // In-card photo carousel. Lives inside the card <Link>, so its controls call
 // preventDefault to avoid navigating when you page through photos.
@@ -81,8 +81,8 @@ export function TourCard({ tour }: { tour: Tour }) {
   const images = Array.from(
     new Set([tour.cover, ...(tour.photos ?? []), ...tour.stops.flatMap((s) => s.photos ?? [])].filter(Boolean)),
   ) as string[];
-  const inc = (tour.inclusions?.[lc] ?? tour.inclusions?.en ?? []).slice(0, 4);
-  const exc = (tour.exclusions?.[lc] ?? tour.exclusions?.en ?? []).slice(0, 2);
+  const inc = pickList(tour.inclusions, lc).slice(0, 4);
+  const exc = pickList(tour.exclusions, lc).slice(0, 2);
 
   const days = tour.durationDays ?? 1;
   const nights = tour.durationNights ?? 0;

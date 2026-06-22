@@ -301,6 +301,15 @@ export function L(v: Localized, locale: string): string {
 
 export const langLabel = (langs: TourLang[]) => langs.join(' · ');
 
+// HY-primary pick for localized string lists (inclusions/exclusions): first
+// non-empty among [locale, hy, ru, en]. Content is entered in Armenian only,
+// so ru/en are usually empty and must fall back to hy.
+export function pickList(list: LocalizedList | undefined | null, locale: string): string[] {
+  const m = (list ?? {}) as Partial<Record<Locale, string[]>>;
+  const lc = locale as Locale;
+  return (m[lc]?.length ? m[lc] : m.hy?.length ? m.hy : m.ru?.length ? m.ru : m.en) ?? [];
+}
+
 export type BookingStatus = 'pending' | 'confirmed' | 'paid' | 'cancelled';
 
 export const MY_BOOKINGS: { id: string; status: BookingStatus; when: 'upcoming' | 'past' }[] = [

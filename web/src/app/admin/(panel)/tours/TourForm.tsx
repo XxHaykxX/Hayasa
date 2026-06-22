@@ -22,12 +22,6 @@ const labelCls = 'mb-1.5 block text-[13px] font-semibold text-navy';
 const cardCls = 'mb-5 rounded-2xl border border-edge bg-white p-6';
 const h2Cls = 'mb-4 text-base font-bold text-navy';
 
-const LIST_LOCALES: { lng: 'hy' | 'ru' | 'en'; tag: string; ph: string }[] = [
-  { lng: 'hy', tag: 'HY · հայերեն', ph: 'Добавить пункт (HY)' },
-  { lng: 'ru', tag: 'RU · русский', ph: 'Добавить пункт (RU)' },
-  { lng: 'en', tag: 'EN · english', ph: 'Add item (EN)' },
-];
-
 function toLocalInput(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -49,57 +43,24 @@ export default function TourForm({ action, initial }: { action: Action; initial?
 
   return (
     <form action={formAction}>
-      {/* Primary content — Armenian (the main language) */}
+      {/* Content — Armenian only (site language) */}
       <div className={cardCls}>
-        <h2 className={h2Cls}>Основное · армянский (главный язык)</h2>
+        <h2 className={h2Cls}>Основное</h2>
         <div className="grid gap-3.5">
           <div>
-            <label className={labelCls}>Название HY *</label>
+            <label className={labelCls}>Название *</label>
             <input name="title_hy" className="hb-in" defaultValue={initial?.title_hy ?? ''} required />
           </div>
           <div>
-            <label className={labelCls}>Описание HY</label>
+            <label className={labelCls}>Описание</label>
             <textarea name="description_hy" className="hb-in" rows={3} defaultValue={initial?.description_hy ?? ''} />
           </div>
           <div>
-            <label className={labelCls}>Локация HY · подзаголовок карточки</label>
+            <label className={labelCls}>Локация · подзаголовок карточки</label>
             <input name="location_hy" className="hb-in" defaultValue={initial?.location_hy ?? ''} placeholder="Գեղարդ · Գառնի" />
           </div>
         </div>
       </div>
-
-      {/* Translations — RU / EN (optional, collapsed by default) */}
-      <details className={cardCls}>
-        <summary className="cursor-pointer list-none text-base font-bold text-navy">
-          Переводы · Русский / English <span className="font-normal text-muted">(необязательно)</span>
-        </summary>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div>
-            <label className={labelCls}>Название RU</label>
-            <input name="title_ru" className="hb-in" defaultValue={initial?.title_ru ?? ''} />
-          </div>
-          <div>
-            <label className={labelCls}>Название EN</label>
-            <input name="title_en" className="hb-in" defaultValue={initial?.title_en ?? ''} />
-          </div>
-          <div>
-            <label className={labelCls}>Описание RU</label>
-            <textarea name="description_ru" className="hb-in" rows={3} defaultValue={initial?.description_ru ?? ''} />
-          </div>
-          <div>
-            <label className={labelCls}>Описание EN</label>
-            <textarea name="description_en" className="hb-in" rows={3} defaultValue={initial?.description_en ?? ''} />
-          </div>
-          <div>
-            <label className={labelCls}>Локация RU</label>
-            <input name="location_ru" className="hb-in" defaultValue={initial?.location_ru ?? ''} placeholder="Гегард · Гарни" />
-          </div>
-          <div>
-            <label className={labelCls}>Локация EN</label>
-            <input name="location_en" className="hb-in" defaultValue={initial?.location_en ?? ''} placeholder="Geghard · Garni" />
-          </div>
-        </div>
-      </details>
 
       {/* Meta */}
       <div className={cardCls}>
@@ -176,29 +137,15 @@ export default function TourForm({ action, initial }: { action: Action; initial?
       {/* Inclusions / Exclusions */}
       <div className={cardCls}>
         <h2 className={h2Cls}>Что входит / не входит</h2>
-        <p className="mb-4 text-xs text-muted">Добавляйте пункты по одному — Enter или «+». HY основной, RU/EN по желанию.</p>
+        <p className="mb-4 text-xs text-muted">Добавляйте пункты по одному — Enter или «+».</p>
         <div className="grid gap-5 md:grid-cols-2">
           <div>
             <div className="mb-2 text-[13px] font-bold text-teal">✓ Входит в тур</div>
-            <div className="grid gap-3">
-              {LIST_LOCALES.map(({ lng, tag, ph }) => (
-                <div key={lng}>
-                  <div className="mb-1 text-[11px] font-bold uppercase tracking-wide text-muted">{tag}</div>
-                  <ListEditor name={`inclusions_${lng}`} initial={initial?.inclusions?.[lng] ?? []} placeholder={ph} />
-                </div>
-              ))}
-            </div>
+            <ListEditor name="inclusions_hy" initial={initial?.inclusions?.hy ?? []} placeholder="Добавить пункт" />
           </div>
           <div>
             <div className="mb-2 text-[13px] font-bold text-amber">✕ Не входит</div>
-            <div className="grid gap-3">
-              {LIST_LOCALES.map(({ lng, tag, ph }) => (
-                <div key={lng}>
-                  <div className="mb-1 text-[11px] font-bold uppercase tracking-wide text-muted">{tag}</div>
-                  <ListEditor name={`exclusions_${lng}`} initial={initial?.exclusions?.[lng] ?? []} placeholder={ph} />
-                </div>
-              ))}
-            </div>
+            <ListEditor name="exclusions_hy" initial={initial?.exclusions?.hy ?? []} placeholder="Добавить пункт" />
           </div>
         </div>
       </div>

@@ -31,34 +31,15 @@ function StopFields({ stop, place, setPlace }: { stop?: StopRow; place: PlaceSta
       )}
       <div className="grid gap-2.5">
         <div>
-          <label className={labelCls}>Название HY *</label>
+          <label className={labelCls}>Название *</label>
           <input name="name_hy" className="hb-in" value={place.name} onChange={(e) => setPlace({ ...place, name: e.target.value })} required />
         </div>
-        <textarea name="description_hy" className="hb-in" rows={2} placeholder="Описание HY" defaultValue={stop?.description_hy ?? ''} />
+        <textarea name="description_hy" className="hb-in" rows={2} placeholder="Описание" defaultValue={stop?.description_hy ?? ''} />
       </div>
       <div className="mt-2.5">
         <label className={labelCls}>Длительность (напр. «50–60 мин»)</label>
         <input name="duration" className="hb-in" defaultValue={stop?.duration ?? ''} placeholder="50–60 мин" />
       </div>
-      <details className="mt-3 rounded-xl border border-edge bg-[#FAFCFC] p-3">
-        <summary className="cursor-pointer list-none text-[13px] font-semibold text-navy">
-          Переводы · RU / EN <span className="font-normal text-muted">(необязательно)</span>
-        </summary>
-        <div className="mt-3 grid gap-2.5">
-          <div className="grid grid-cols-2 gap-2.5">
-            <div>
-              <label className={labelCls}>Название RU</label>
-              <input name="name_ru" className="hb-in" defaultValue={stop?.name_ru ?? ''} />
-            </div>
-            <div>
-              <label className={labelCls}>Название EN</label>
-              <input name="name_en" className="hb-in" defaultValue={stop?.name_en ?? ''} />
-            </div>
-          </div>
-          <textarea name="description_ru" className="hb-in" rows={2} placeholder="Описание RU" defaultValue={stop?.description_ru ?? ''} />
-          <textarea name="description_en" className="hb-in" rows={2} placeholder="Описание EN" defaultValue={stop?.description_en ?? ''} />
-        </div>
-      </details>
     </>
   );
 }

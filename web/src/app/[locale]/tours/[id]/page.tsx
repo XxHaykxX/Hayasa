@@ -11,7 +11,7 @@ import { TourGallery } from '@/components/tours/TourGallery';
 import { StopGallery } from '@/components/tours/StopGallery';
 import { SceneryGallery } from '@/components/tours/SceneryGallery';
 import { Reveal } from '@/components/motion/Reveal';
-import { langLabel, L } from '@/lib/tours';
+import { langLabel, L, pickList } from '@/lib/tours';
 import { getPublicTour } from '@/lib/db';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { tourSchema, breadcrumbSchema, faqSchema, tourFaqItems } from '@/lib/schema';
@@ -53,8 +53,8 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
   ) as string[];
 
   const lc = locale as 'en' | 'ru' | 'hy';
-  const inc = tour.inclusions?.[lc] ?? tour.inclusions?.en ?? [];
-  const exc = tour.exclusions?.[lc] ?? tour.exclusions?.en ?? [];
+  const inc = pickList(tour.inclusions, lc);
+  const exc = pickList(tour.exclusions, lc);
 
   const toursLabel = { en: 'Tours', ru: 'Туры', hy: 'Տուրեր' }[locale as 'en' | 'ru' | 'hy'] ?? 'Tours';
   const breadcrumb = breadcrumbSchema([
