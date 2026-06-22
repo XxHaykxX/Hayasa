@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { Shell } from '@/components/layout/Shell';
 import { Icon } from '@/components/ui/Icon';
@@ -9,6 +10,14 @@ import { Reveal } from '@/components/motion/Reveal';
 import { Stagger } from '@/components/motion/Stagger';
 import { L, type Tour } from '@/lib/tours';
 import { ATTRACTIONS } from '@/lib/attractions';
+import { regionByKey } from '@/lib/regions';
+
+// All-locale searchable text for region matching (data may be HY-only).
+const regionText = (tour: Tour) =>
+  [tour.name, tour.loc, ...tour.stops.flatMap((s) => [s.name, s.desc])]
+    .flatMap((o) => [o.hy, o.ru, o.en])
+    .join(' ')
+    .toLowerCase();
 
 const monthIndex = (ts: number) => {
   const d = new Date(ts);
@@ -18,6 +27,8 @@ const monthIndex = (ts: number) => {
 export default function ToursClient({ tours }: { tours: Tour[] }) {
   const t = useTranslations('Tours');
   const locale = useLocale();
+  const searchParams = useSearchParams();
+  const [region, setRegion] = useState<string | null>(searchParams.get('region'));
   const [query, setQuery] = useState('');
   const [dateF, setDateF] = useState('all');
   const [lang, setLang] = useState<'all' | 'AM' | 'RU' | 'EN'>('all');
@@ -28,6 +39,13 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
   const [attrQuery, setAttrQuery] = useState('');
   const locRef = useRef<HTMLDivElement>(null);
   const attrRef = useRef<HTMLDivElement>(null);
+
+  // Keep the region filter in sync with the URL (clicking another marz on the map).
+  useEffect(() => {
+    setRegion(searchParams.get('region'));
+  }, [searchParams]);
+
+  const reg = regionByKey(region);
 
   // Close dropdowns when clicking outside them.
   useEffect(() => {
@@ -74,6 +92,10 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
         .join(' ')}`.toLowerCase();
       if (!txt.includes(attrKw)) return false;
     }
+    if (reg) {
+      const txt = regionText(tour);
+      if (!reg.kw.some((k) => k && txt.includes(k))) return false;
+    }
     if (dateF === 'this' && monthIndex(tour.target) !== curMonth) return false;
     if (dateF === 'next' && monthIndex(tour.target) !== curMonth + 1) return false;
     return true;
@@ -103,6 +125,15 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
             />
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            {reg && (
+              <button
+                onClick={() => setRegion(null)}
+                className="inline-flex items-center gap-2 rounded-full bg-teal px-4 py-2 font-body text-sm font-bold text-white transition-colors hover:bg-teal-dark"
+              >
+                {L(reg.label, locale)}
+                <Icon name="x" size={14} color="#fff" />
+              </button>
+            )}
             <div className="flex items-center gap-2">
               {dateFilters.map(([k, label]) => (
                 <button

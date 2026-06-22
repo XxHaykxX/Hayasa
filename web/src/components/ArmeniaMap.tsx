@@ -29,6 +29,12 @@ export function ArmeniaMap() {
     setRegion(g?.querySelector('text')?.textContent ?? null);
   };
 
+  const onClick = (e: React.MouseEvent) => {
+    const g = (e.target as Element).closest?.('g[data-name]');
+    const key = g?.getAttribute('data-name');
+    router.push(key ? `/tours?region=${encodeURIComponent(key)}` : '/tours');
+  };
+
   return (
     <div className="amap">
       <div className="mb-3 text-center font-display text-2xl font-bold text-navy">
@@ -36,10 +42,10 @@ export function ArmeniaMap() {
       </div>
       <div
         role="group"
-        aria-label="Карта регионов Армении"
+        aria-label="Карта регионов Армении — нажмите регион, чтобы увидеть туры"
         onMouseOver={onOver}
         onMouseLeave={() => setRegion(null)}
-        onClick={() => router.push('/tours')}
+        onClick={onClick}
         dangerouslySetInnerHTML={{ __html: SVG }}
       />
     </div>

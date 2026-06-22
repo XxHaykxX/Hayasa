@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { getPublicTours } from '@/lib/db';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { L } from '@/lib/tours';
@@ -48,7 +49,9 @@ export default async function ToursPage({ params: { locale } }: { params: { loca
   return (
     <>
       <JsonLd data={itemList} />
-      <ToursClient tours={tours} />
+      <Suspense>
+        <ToursClient tours={tours} />
+      </Suspense>
     </>
   );
 }
