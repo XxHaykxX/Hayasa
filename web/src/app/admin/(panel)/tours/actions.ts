@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/lib/admin-auth';
 import { createServiceSupabase } from '@/lib/supabase-server';
 import { tourSchema, validateImage } from '@/lib/admin-tours';
+import { geocodePlaces } from '@/lib/geocode';
+import { fetchRoutePath } from '@/lib/osrm';
 
 export type ActionState = { ok: boolean; error?: string };
 
@@ -34,8 +36,8 @@ function listFrom(formData: FormData, base: string) {
 function parseForm(formData: FormData) {
   return tourSchema.safeParse({
     title_hy: formData.get('title_hy'),
-    title_ru: formData.get('title_ru'),
-    title_en: formData.get('title_en'),
+    title_ru: formData.get('title_ru') ?? '',
+    title_en: formData.get('title_en') ?? '',
     description_hy: formData.get('description_hy') ?? '',
     description_ru: formData.get('description_ru') ?? '',
     description_en: formData.get('description_en') ?? '',
@@ -105,8 +107,9 @@ async function recomputeCover(db: DB, tourId: string) {
 function toRow(input: ReturnType<typeof tourSchema.parse>) {
   return {
     title_hy: input.title_hy,
-    title_ru: input.title_ru,
-    title_en: input.title_en,
+    // HY-only entry: RU/EN cols are NOT NULL, so mirror HY when not provided.
+    title_ru: input.title_ru || input.title_hy,
+    title_en: input.title_en || input.title_hy,
     description_hy: input.description_hy || null,
     description_ru: input.description_ru || null,
     description_en: input.description_en || null,
@@ -269,10 +272,13 @@ export async function importTourFromUrl(_prev: ActionState, formData: FormData):
   if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
 
   const start = new Date(Date.now() + 7 * 86_400_000).toISOString(); // placeholder date, editor adjusts
+  const title = (j.title?.trim() || 'Импортированный тур').slice(0, 200);
   const { data: inserted, error } = await db
     .from('tours')
     .insert({
-      title_hy: (j.title?.trim() || 'Импортированный тур').slice(0, 200),
+      title_hy: title,
+      title_ru: title, // RU/EN cols are NOT NULL — mirror HY (hy-only entry)
+      title_en: title,
       description_hy: j.description?.trim() || null,
       category: 'classic',
       country: 'am',
@@ -293,24 +299,47 @@ export async function importTourFromUrl(_prev: ActionState, formData: FormData):
   const tourId = inserted.id as string;
 
   if (Array.isArray(j.stops) && j.stops.length) {
+    const stops = j.stops.slice(0, 20).map((s, i) => ({
+      name: String(s?.name ?? '').trim().slice(0, 200) || `Остановка ${i + 1}`,
+      description: s?.description ? String(s.description).trim() : null,
+    }));
+    // Auto-geocode stop names (free, best-effort) so the route map works without
+    // hand-placing pins. Unresolved stops keep null coords; editor fills them.
+    const coords = await geocodePlaces(stops.map((s) => s.name));
     try {
       await db.from('stops').insert(
-        j.stops.slice(0, 20).map((s, i) => ({
+        stops.map((s, i) => ({
           tour_id: tourId,
           order_index: i,
-          name_hy: String(s?.name ?? '').trim().slice(0, 200) || `Остановка ${i + 1}`,
-          description_hy: s?.description ? String(s.description).trim() : null,
-          latitude: null,
-          longitude: null,
+          name_hy: s.name,
+          description_hy: s.description,
+          latitude: coords[i]?.lat ?? null,
+          longitude: coords[i]?.lng ?? null,
         })),
       );
     } catch {
-      /* stops without coords may violate NOT NULL — skip, editor adds them */
+      /* insert failed — skip, editor adds stops manually */
     }
+    await recomputeImportRoute(db, tourId);
   }
 
   revalidatePath('/admin/tours');
   redirect(`/admin/tours/${tourId}/edit`);
+}
+
+/** Cache road geometry for a freshly imported tour (best-effort). */
+async function recomputeImportRoute(db: DB, tourId: string) {
+  const { data } = await db
+    .from('stops')
+    .select('latitude,longitude')
+    .eq('tour_id', tourId)
+    .order('order_index', { ascending: true });
+  const pts = (data ?? [])
+    .filter((s) => s.latitude != null && s.longitude != null)
+    .map((s) => [s.latitude as number, s.longitude as number] as [number, number]);
+  if (pts.length < 2) return;
+  const path = await fetchRoutePath(pts);
+  if (path) await db.from('tours').update({ route_path: path }).eq('id', tourId);
 }
 
 export async function deleteTour(id: string): Promise<void> {

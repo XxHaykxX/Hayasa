@@ -21,5 +21,5 @@ export type BookingRow = {
   notes: string | null;
   source: string;
   created_at: string;
-  tours: { title_ru: string } | null;
+  tours: { title_hy: string | null; title_ru: string | null } | null;
 };

@@ -86,7 +86,7 @@ export default async function AdminBookingsPage({
               {bookings.map((b) => (
                   <tr key={b.id}>
                     <td className={td}>{fmtDate(b.created_at)}</td>
-                    <td className={td}>{b.tours?.title_ru ?? <span className="text-[#9DB6B4]">{b.notes ?? '—'}</span>}</td>
+                    <td className={td}>{(b.tours?.title_hy || b.tours?.title_ru) ?? <span className="text-[#9DB6B4]">{b.notes ?? '—'}</span>}</td>
                     <td className={td}>{b.full_name}</td>
                     <td className={td}>
                       <a href={`tel:${b.phone}`} className="text-teal no-underline">

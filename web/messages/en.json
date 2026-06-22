@@ -109,6 +109,7 @@
     "nextMonth": "Next month",
     "all": "All",
     "location": "Location",
+    "region": "Region",
     "seatsLeft": "{count, plural, one {# seat left} other {# seats left}}",
     "days": "{count, plural, one {# day} other {# days}}",
     "nights": "{count, plural, one {# night} other {# nights}}",

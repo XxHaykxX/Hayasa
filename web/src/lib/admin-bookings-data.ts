@@ -21,7 +21,7 @@ export async function listBookings(filters: BookingFilters = {}): Promise<Bookin
 
   let query = client
     .from('bookings')
-    .select('id, tour_id, seats, status, full_name, phone, notes, source, created_at, tours(title_ru)', {
+    .select('id, tour_id, seats, status, full_name, phone, notes, source, created_at, tours(title_hy, title_ru)', {
       count: 'exact',
     })
     .order('created_at', { ascending: false });

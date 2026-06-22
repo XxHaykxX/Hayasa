@@ -18,10 +18,10 @@ export async function saveContent(_prev: ContentState, formData: FormData): Prom
   const rows = CONTENT_FIELDS.map((f) =>
     f.localized
       ? {
+          // HY-only entry: only HY is collected. value_ru/value_en go null
+          // (public read falls back to value_hy).
           key: f.key,
-          value_ru: clean(formData.get(`${f.key}_ru`)),
           value_hy: clean(formData.get(`${f.key}_hy`)),
-          value_en: clean(formData.get(`${f.key}_en`)),
           updated_at: now,
         }
       : { key: f.key, value_ru: clean(formData.get(f.key)), updated_at: now },

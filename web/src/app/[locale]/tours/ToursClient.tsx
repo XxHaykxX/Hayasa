@@ -10,7 +10,7 @@ import { Reveal } from '@/components/motion/Reveal';
 import { Stagger } from '@/components/motion/Stagger';
 import { L, type Tour } from '@/lib/tours';
 import { ATTRACTIONS } from '@/lib/attractions';
-import { regionByKey } from '@/lib/regions';
+import { REGIONS, regionByKey } from '@/lib/regions';
 
 // All-locale searchable text for region matching (data may be HY-only).
 const regionText = (tour: Tour) =>
@@ -37,8 +37,10 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
   const [attraction, setAttraction] = useState('');
   const [attrOpen, setAttrOpen] = useState(false);
   const [attrQuery, setAttrQuery] = useState('');
+  const [regOpen, setRegOpen] = useState(false);
   const locRef = useRef<HTMLDivElement>(null);
   const attrRef = useRef<HTMLDivElement>(null);
+  const regRef = useRef<HTMLDivElement>(null);
 
   // Keep the region filter in sync with the URL (clicking another marz on the map).
   useEffect(() => {
@@ -52,6 +54,7 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
     const onDoc = (e: MouseEvent) => {
       if (locRef.current && !locRef.current.contains(e.target as Node)) setLocOpen(false);
       if (attrRef.current && !attrRef.current.contains(e.target as Node)) setAttrOpen(false);
+      if (regRef.current && !regRef.current.contains(e.target as Node)) setRegOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
@@ -131,15 +134,44 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
             />
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            {reg && (
+            <div className="relative" ref={regRef}>
               <button
-                onClick={() => setRegion(null)}
-                className="inline-flex items-center gap-2 rounded-full bg-teal px-4 py-2 font-body text-sm font-bold text-white transition-colors hover:bg-teal-dark"
+                onClick={() => setRegOpen((o) => !o)}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-body text-sm font-medium transition-colors ${reg ? 'border-navy bg-navy text-white' : 'border-edge bg-white text-navy hover:border-teal'}`}
               >
-                {L(reg.label, locale)}
-                <Icon name="x" size={14} color="#fff" />
+                {reg ? L(reg.label, locale) : t('region')}
+                <Icon name="chevronDown" size={15} color={reg ? '#fff' : '#6A8A88'} />
               </button>
-            )}
+              {regOpen && (
+                <div className="absolute z-20 mt-2 w-52 overflow-hidden rounded-xl border border-edge bg-white shadow-[0_10px_30px_rgba(26,58,92,0.14)]">
+                  <div className="max-h-72 overflow-auto py-1">
+                    {reg && (
+                      <button
+                        onClick={() => {
+                          setRegion(null);
+                          setRegOpen(false);
+                        }}
+                        className="block w-full px-4 py-2 text-left font-body text-sm text-muted hover:bg-mist"
+                      >
+                        — {t('all')} —
+                      </button>
+                    )}
+                    {REGIONS.map((r) => (
+                      <button
+                        key={r.key}
+                        onClick={() => {
+                          setRegion(r.key);
+                          setRegOpen(false);
+                        }}
+                        className={`block w-full px-4 py-2 text-left font-body text-sm transition-colors ${region === r.key ? 'bg-aqua font-bold text-teal' : 'text-navy hover:bg-mist'}`}
+                      >
+                        {L(r.label, locale)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               {dateFilters.map(([k, label]) => (
                 <button

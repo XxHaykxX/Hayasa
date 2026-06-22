@@ -109,6 +109,7 @@
     "nextMonth": "Հաջորդ ամիս",
     "all": "Բոլորը",
     "location": "Վայր",
+    "region": "Մարզ",
     "seatsLeft": "մնացել է {count} տեղ",
     "days": "{count, plural, one {# օր} other {# օր}}",
     "nights": "{count, plural, one {# գիշեր} other {# գիշեր}}",

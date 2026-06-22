@@ -109,6 +109,7 @@
     "nextMonth": "В следующем месяце",
     "all": "Все",
     "location": "Локация",
+    "region": "Регион",
     "seatsLeft": "осталось мест: {count}",
     "days": "{count, plural, one {# день} few {# дня} many {# дней} other {# дня}}",
     "nights": "{count, plural, one {# ночь} few {# ночи} many {# ночей} other {# ночи}}",

@@ -13,7 +13,7 @@ const BUCKET = 'tour-photos';
 
 function parseStop(formData: FormData) {
   return stopSchema.safeParse({
-    name_ru: formData.get('name_ru'),
+    name_ru: formData.get('name_ru') ?? '',
     name_hy: formData.get('name_hy') ?? '',
     name_en: formData.get('name_en') ?? '',
     description_ru: formData.get('description_ru') ?? '',
