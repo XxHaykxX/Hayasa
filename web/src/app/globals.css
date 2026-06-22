@@ -79,6 +79,36 @@ body {
   color: #9DB6B4;
 }
 
+/* Armenia regions map (components/ArmeniaMap) — brand fills + hover highlight. */
+.amap-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.amap [data-name] {
+  cursor: pointer;
+}
+.amap [data-name] path {
+  fill: #1a3a5c;
+  stroke: #fff;
+  stroke-width: 1;
+  transition: fill 0.2s ease;
+}
+.amap [data-name]:hover path {
+  fill: #1a7a8a;
+}
+.amap [data-name='Yerevan'] path {
+  fill: #e2685e;
+}
+.amap [data-name='Yerevan']:hover path {
+  fill: #c9543f;
+}
+.amap [data-name] text {
+  fill: #fff;
+  pointer-events: none;
+  font-family: var(--font-body), sans-serif;
+}
+
 /* Yandex map — desaturate only the tile/ground pane so red pins + route stay colored. */
 .webmap-mono [class*="-ground-pane"] {
   filter: grayscale(1) contrast(0.92) brightness(1.06);
