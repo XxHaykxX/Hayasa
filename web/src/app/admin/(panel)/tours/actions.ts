@@ -194,6 +194,124 @@ export async function updateTour(id: string, _prev: ActionState, formData: FormD
   redirect('/admin/tours');
 }
 
+// JSON-extract schema for importing a tour from a competitor URL via Firecrawl.
+const IMPORT_SCHEMA = {
+  type: 'object',
+  properties: {
+    title: { type: 'string', description: 'Tour title' },
+    description: { type: 'string', description: 'Full tour description' },
+    durationDays: { type: 'number', description: 'Duration in days' },
+    price: { type: 'number', description: 'Price per person (number only)' },
+    inclusions: { type: 'array', items: { type: 'string' }, description: "What's included, one item per entry" },
+    exclusions: { type: 'array', items: { type: 'string' }, description: 'What is NOT included' },
+    stops: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { name: { type: 'string' }, description: { type: 'string' } },
+      },
+      description: 'Itinerary stops in order',
+    },
+  },
+};
+
+/**
+ * Scrape a tour page via Firecrawl, extract structured fields and create a
+ * hidden DRAFT tour (+ stops without coordinates), then open it for review.
+ * Keeps the source language (Armenian sources → Armenian content).
+ */
+export async function importTourFromUrl(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const url = String(formData.get('url') ?? '').trim();
+  if (!/^https?:\/\/.+/.test(url)) return { ok: false, error: 'Введите корректный URL (http/https).' };
+
+  const key = process.env.FIRECRAWL_API_KEY;
+  if (!key) return { ok: false, error: 'FIRECRAWL_API_KEY не задан в .env.local.' };
+
+  type Extracted = {
+    title?: string;
+    description?: string;
+    durationDays?: number;
+    price?: number;
+    inclusions?: string[];
+    exclusions?: string[];
+    stops?: { name?: string; description?: string }[];
+  };
+  let j: Extracted;
+  try {
+    const res = await fetch('https://api.firecrawl.dev/v2/scrape', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url,
+        onlyMainContent: true,
+        formats: [
+          {
+            type: 'json',
+            prompt:
+              'Extract the tour: title, full description, duration in days, price per person (number), what is included and what is excluded as separate bullet lists, and the ordered itinerary stops (name + short description). Keep the original language of the page.',
+            schema: IMPORT_SCHEMA,
+          },
+        ],
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.data?.json) {
+      return { ok: false, error: 'Не удалось извлечь данные со страницы. Проверьте ссылку.' };
+    }
+    j = data.data.json as Extracted;
+  } catch {
+    return { ok: false, error: 'Ошибка запроса к Firecrawl.' };
+  }
+
+  const db = createServiceSupabase();
+  if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
+
+  const start = new Date(Date.now() + 7 * 86_400_000).toISOString(); // placeholder date, editor adjusts
+  const { data: inserted, error } = await db
+    .from('tours')
+    .insert({
+      title_hy: (j.title?.trim() || 'Импортированный тур').slice(0, 200),
+      description_hy: j.description?.trim() || null,
+      category: 'classic',
+      country: 'am',
+      region: null,
+      date_start: start,
+      price: typeof j.price === 'number' && j.price > 0 ? Math.round(j.price) : 0,
+      duration_days: typeof j.durationDays === 'number' && j.durationDays > 0 ? Math.round(j.durationDays) : 1,
+      duration_nights: 0,
+      max_seats: 18,
+      language: 'all',
+      is_active: false,
+      inclusions: { hy: Array.isArray(j.inclusions) ? j.inclusions.filter(Boolean).slice(0, 30) : [] },
+      exclusions: { hy: Array.isArray(j.exclusions) ? j.exclusions.filter(Boolean).slice(0, 30) : [] },
+    })
+    .select('id')
+    .single();
+  if (error || !inserted) return { ok: false, error: error?.message ?? 'Не удалось создать тур.' };
+  const tourId = inserted.id as string;
+
+  if (Array.isArray(j.stops) && j.stops.length) {
+    try {
+      await db.from('stops').insert(
+        j.stops.slice(0, 20).map((s, i) => ({
+          tour_id: tourId,
+          order_index: i,
+          name_hy: String(s?.name ?? '').trim().slice(0, 200) || `Остановка ${i + 1}`,
+          description_hy: s?.description ? String(s.description).trim() : null,
+          latitude: null,
+          longitude: null,
+        })),
+      );
+    } catch {
+      /* stops without coords may violate NOT NULL — skip, editor adds them */
+    }
+  }
+
+  revalidatePath('/admin/tours');
+  redirect(`/admin/tours/${tourId}/edit`);
+}
+
 export async function deleteTour(id: string): Promise<void> {
   await requireAdmin();
   const db = createServiceSupabase();
