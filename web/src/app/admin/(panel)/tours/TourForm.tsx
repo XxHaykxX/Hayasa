@@ -4,6 +4,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { AdminButton } from '@/components/admin/AdminButton';
 import { FileInput } from '@/components/admin/FileInput';
 import { ListEditor } from '@/components/admin/ListEditor';
+import { REGIONS } from '@/lib/regions';
 import {
   TOUR_CATEGORIES,
   TOUR_COUNTRIES,
@@ -120,6 +121,17 @@ export default function TourForm({ action, initial }: { action: Action; initial?
               {TOUR_COUNTRIES.map((c) => (
                 <option key={c} value={c}>
                   {COUNTRY_LABEL[c]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Регион (марз)</label>
+            <select name="region" className="hb-in" defaultValue={initial?.region ?? ''}>
+              <option value="">— не указан —</option>
+              {REGIONS.map((r) => (
+                <option key={r.key} value={r.key}>
+                  {r.label.ru}
                 </option>
               ))}
             </select>

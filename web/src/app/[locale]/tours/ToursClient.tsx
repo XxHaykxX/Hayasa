@@ -93,8 +93,14 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
       if (!txt.includes(attrKw)) return false;
     }
     if (reg) {
-      const txt = regionText(tour);
-      if (!reg.kw.some((k) => k && txt.includes(k))) return false;
+      if (tour.region) {
+        // Exact match once the region is set in admin…
+        if (tour.region !== reg.key) return false;
+      } else {
+        // …falling back to keywords for tours without a region yet.
+        const txt = regionText(tour);
+        if (!reg.kw.some((k) => k && txt.includes(k))) return false;
+      }
     }
     if (dateF === 'this' && monthIndex(tour.target) !== curMonth) return false;
     if (dateF === 'next' && monthIndex(tour.target) !== curMonth + 1) return false;

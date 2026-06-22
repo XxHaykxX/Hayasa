@@ -49,6 +49,7 @@ export type TourRow = {
   location_en: string | null;
   category: string | null;
   country: string;
+  region: string | null;
   date_start: string;
   price: number;
   currency: string;
@@ -78,6 +79,7 @@ export const tourSchema = z.object({
   location_en: z.string().trim().optional().default(''),
   category: z.enum(TOUR_CATEGORIES),
   country: z.enum(TOUR_COUNTRIES),
+  region: z.string().trim().optional().default(''),
   date_start: z.string().min(1, 'Дата обязательна'),
   price: z.coerce.number().int().min(0, 'Цена не может быть отрицательной'),
   duration_days: z.coerce.number().int().min(1).default(1),

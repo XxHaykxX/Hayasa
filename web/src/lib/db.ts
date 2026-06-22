@@ -125,6 +125,7 @@ type DbTour = {
   location_en: string | null;
   category: string | null;
   country: string;
+  region: string | null;
   date_start: string;
   price: number;
   max_seats: number;
@@ -175,6 +176,7 @@ function mapTour(row: DbTour, variant: number, locale = 'en'): Tour {
     tag: CATEGORY_TAG[row.category ?? 'classic'] ?? CATEGORY_TAG.classic,
     description: loc(row.description_hy, row.description_ru, row.description_en, ''),
     stops,
+    region: row.region ?? null,
     cover: row.cover_image_url ?? null,
     photos: (row.tour_photos ?? [])
       .slice()
@@ -189,7 +191,7 @@ function mapTour(row: DbTour, variant: number, locale = 'en'): Tour {
 }
 
 const TOUR_SELECT =
-  'id,title_hy,title_ru,title_en,description_hy,description_ru,description_en,location_hy,location_ru,location_en,category,country,date_start,price,max_seats,booked_seats,language,cover_image_url,route_path,inclusions,exclusions,duration_days,duration_nights,tour_photos(photo_url,order_index),stops(order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,duration,destination_slug,stop_photos(photo_url,order_index))';
+  'id,title_hy,title_ru,title_en,description_hy,description_ru,description_en,location_hy,location_ru,location_en,category,country,region,date_start,price,max_seats,booked_seats,language,cover_image_url,route_path,inclusions,exclusions,duration_days,duration_nights,tour_photos(photo_url,order_index),stops(order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,duration,destination_slug,stop_photos(photo_url,order_index))';
 
 /** All active tours for the public site. Falls back to mock TOURS. */
 export async function getPublicTours(locale = 'en'): Promise<Tour[]> {

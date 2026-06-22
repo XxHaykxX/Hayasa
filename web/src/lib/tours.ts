@@ -23,6 +23,7 @@ export type Tour = {
   name: Localized;
   loc: Localized;
   country: Country;
+  region?: string | null; // marz key (e.g. 'Lori') for the home map filter
   date: string;
   target: number; // epoch ms
   seats: number; // seats left
