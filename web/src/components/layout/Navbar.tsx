@@ -8,9 +8,10 @@ import { Btn } from '@/components/ui/Btn';
 import { LangSwitcher } from '@/components/ui/LangSwitcher';
 
 const LINKS = [
+  { key: 'home', href: '/' },
   { key: 'tours', href: '/tours' },
-  { key: 'about', href: '/#about' },
-  { key: 'contact', href: '/#contact' },
+  { key: 'about', href: '/about' },
+  { key: 'contact', href: '/contact' },
 ] as const;
 
 export function Navbar() {
@@ -18,7 +19,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const isActive = (href: string) => href !== '/' && pathname.startsWith(href);
+  const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);

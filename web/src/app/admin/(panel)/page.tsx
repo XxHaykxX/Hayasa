@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Map, Compass, Calendar, Clock, Users, Plus } from 'lucide-react';
 import { createServiceSupabase, createServerSupabase } from '@/lib/supabase-server';
 import { STATUS_LABEL, STATUS_COLOR } from '@/lib/admin-bookings';
+import { PageHeader } from '@/components/admin/Page';
+import { AdminButton } from '@/components/admin/AdminButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,18 +72,15 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="mb-1 text-[26px] font-bold text-navy">Дашборд</h1>
-          <p className="text-sm text-muted">Обзор сайта Hayasa Tours.</p>
-        </div>
-        <Link
-          href="/admin/tours/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-teal px-[18px] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-dark"
-        >
-          <Plus className="h-4 w-4" /> Новый тур
-        </Link>
-      </div>
+      <PageHeader
+        title="Дашборд"
+        subtitle="Обзор сайта Hayasa Tours."
+        action={
+          <AdminButton href="/admin/tours/new">
+            <Plus className="h-4 w-4" /> Новый тур
+          </AdminButton>
+        }
+      />
 
       {!d ? (
         <div className="max-w-[520px] rounded-2xl border border-edge bg-white px-[22px] py-5 text-[#C0564B]">

@@ -7,4 +7,5 @@ export const CONTACT = {
   telegram: 'https://t.me/hayasatours',
   email: 'hello@hayasatours.am',
   address: 'ул. Налбандяна 96, Ереван',
+  mapUrl: 'https://www.google.com/maps/search/?api=1&query=Nalbandyan+96+Yerevan',
 };

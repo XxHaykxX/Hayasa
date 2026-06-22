@@ -5,6 +5,7 @@
     "description": "Small-group journeys through ancient monasteries, mountain lakes and highland villages — guided in Armenian, Russian and English."
   },
   "Nav": {
+    "home": "Home",
     "tours": "Tours",
     "destinations": "Destinations",
     "about": "About",
@@ -49,6 +50,54 @@
     "contactTitle": "Plan your journey",
     "contactBody": "Questions about a tour, a custom date, or a private group? Message us — we usually reply within a few hours.",
     "emailLabel": "Email"
+  },
+  "About": {
+    "kicker": "ABOUT US",
+    "title": "Travel Armenia with people who live it",
+    "subtitle": "Hayasa Tours is a small Yerevan team — guides, historians and drivers. Since 2018 we've run small-group departures across Armenia and Georgia.",
+    "storyKicker": "OUR STORY",
+    "storyTitle": "How it started",
+    "storyBody1": "We started as three people, one minibus and a single weekend route. Today Hayasa Tours is a team of history guides, naturalists and drivers who know the story behind every stone.",
+    "storyBody2": "Groups are never larger than 18, and every departure runs in three languages — so the conversation with your guide and the places we visit stays alive.",
+    "stat1": "Travellers hosted",
+    "stat2": "Departures a year",
+    "stat3": "Years running",
+    "valuesKicker": "WHY TRAVEL WITH US",
+    "valuesTitle": "What we promise",
+    "v1Title": "Small Groups",
+    "v1Body": "Never more than 18 travellers — real conversation with your guide and the places.",
+    "v2Title": "Three Languages",
+    "v2Body": "Every tour runs in Armenian, Russian and English.",
+    "v3Title": "Expert Guides",
+    "v3Body": "Local historians and naturalists, in love with their land.",
+    "ctaTitle": "Ready to hit the road?",
+    "ctaBody": "See the next departures and pick your route.",
+    "ctaBtn": "View Tours"
+  },
+  "Contact": {
+    "kicker": "CONTACT",
+    "title": "Let's plan your journey",
+    "subtitle": "Questions about a tour, a custom date, or a separate group? Message us — we usually reply within a couple of hours.",
+    "chatTitle": "MESSAGE US",
+    "whatsappDesc": "Quick reply on the messenger",
+    "telegramDesc": "Write any time",
+    "phoneTitle": "Phone",
+    "phoneDesc": "Calls during working hours",
+    "emailTitle": "Email",
+    "emailDesc": "For detailed enquiries",
+    "officeTitle": "Office",
+    "mapBtn": "Open in maps",
+    "hoursTitle": "Working hours",
+    "hoursWeekdays": "Mon–Sat: 09:00–20:00",
+    "hoursSunday": "Sun: 09:00–19:00"
+  },
+  "Team": {
+    "kicker": "OUR TEAM",
+    "title": "One team, one family",
+    "subtitle": "Guides, drivers and coordinators who make every departure feel like home.",
+    "joinTitle": "Want to join the team?",
+    "joinBody": "We're looking for guides and drivers in love with Armenia. Write to us.",
+    "joinBtn": "Message us"
   },
   "Tours": {
     "title": "Explore Our Tours",

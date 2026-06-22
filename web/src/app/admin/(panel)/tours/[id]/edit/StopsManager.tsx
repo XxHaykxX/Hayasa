@@ -7,6 +7,9 @@ import type { StopRow } from '@/lib/admin-stops';
 import { createStop, updateStop, deleteStop, addStopPhoto, deleteStopPhoto, reorderStops, reorderStopPhotos } from './stops-actions';
 import type { StopPhotoRow } from '@/lib/admin-stops';
 import StopPlacePicker from './StopPlacePicker';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
+import { AdminButton } from '@/components/admin/AdminButton';
+import { FileInput } from '@/components/admin/FileInput';
 
 const labelCls = 'mb-1.5 block text-xs font-semibold text-navy';
 const cardCls = 'mb-3.5 rounded-2xl border border-edge bg-white p-[18px]';
@@ -64,6 +67,7 @@ function StopCard({ stop, index, tourId }: { stop: StopRow; index: number; tourI
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const confirm = useConfirm();
   const [place, setPlace] = useState<PlaceState>({
     name: stop.name_hy ?? '',
     lat: stop.latitude != null ? String(stop.latitude) : '',
@@ -106,8 +110,9 @@ function StopCard({ stop, index, tourId }: { stop: StopRow; index: number; tourI
     });
   }
 
-  function onDelete() {
-    if (!confirm('Удалить остановку?')) return;
+  async function onDelete() {
+    const ok = await confirm({ title: 'Удалить остановку?', confirmLabel: 'Удалить', destructive: true });
+    if (!ok) return;
     startTransition(async () => {
       await deleteStop(stop.id, tourId);
       toast.success('Остановка удалена');
@@ -133,7 +138,9 @@ function StopCard({ stop, index, tourId }: { stop: StopRow; index: number; tourI
     });
   }
 
-  function onDeletePhoto(photoId: string) {
+  async function onDeletePhoto(photoId: string) {
+    const ok = await confirm({ title: 'Удалить фото?', confirmLabel: 'Удалить', destructive: true });
+    if (!ok) return;
     startTransition(async () => {
       await deleteStopPhoto(photoId, tourId);
       toast.success('Фото удалено');
@@ -146,7 +153,7 @@ function StopCard({ stop, index, tourId }: { stop: StopRow; index: number; tourI
       <form onSubmit={onSave}>
         <div className="mb-3 flex items-center justify-between">
           <strong className="text-sm">
-            <span className="mr-2 cursor-grab select-none text-muted" title="Перетащите для смены порядка">⠿</span>#{index + 1} · {place.name || '—'}
+            <span className="mr-2 cursor-grab select-none text-muted" title="Перетащите для смены порядка" aria-hidden>⠿</span>#{index + 1} · {place.name || '—'}
           </strong>
           <button type="button" onClick={onDelete} disabled={pending} className="rounded-lg border border-[#F1C9C3] bg-white px-2.5 py-1.5 text-xs text-[#C0564B] disabled:opacity-60">
             Удалить остановку
@@ -193,17 +200,19 @@ function StopCard({ stop, index, tourId }: { stop: StopRow; index: number; tourI
               <span className="absolute bottom-1 left-1 flex h-[18px] w-[18px] items-center justify-center rounded bg-black/55 text-[10px] font-bold text-white">
                 {pi + 1}
               </span>
-              <button type="button" onClick={() => onDeletePhoto(p.id)} disabled={pending} title="Удалить фото" className="absolute right-1 top-1 h-[22px] w-[22px] rounded-full border-none bg-[#C0564Bee] text-[13px] leading-[22px] text-white">
+              <button type="button" onClick={() => onDeletePhoto(p.id)} disabled={pending} title="Удалить фото" aria-label="Удалить фото" className="absolute right-1 top-1 h-[22px] w-[22px] rounded-full border-none bg-[#C0564Bee] text-[13px] leading-[22px] text-white">
                 ×
               </button>
             </div>
           ))}
         </div>
-        <form onSubmit={onAddPhoto} className="flex items-center gap-2">
-          <input type="file" name="photo" accept="image/*" multiple required />
-          <button type="submit" disabled={pending} className="rounded-lg border border-edge bg-white px-3 py-1.5 text-[13px]">
-            {pending ? 'Загрузка…' : 'Загрузить фото'}
-          </button>
+        <form onSubmit={onAddPhoto} className="grid gap-2">
+          <FileInput name="photo" multiple required label="Добавить фото остановки" />
+          <div>
+            <AdminButton type="submit" variant="secondary" size="sm" disabled={pending}>
+              {pending ? 'Загрузка…' : 'Загрузить фото'}
+            </AdminButton>
+          </div>
         </form>
       </div>
 

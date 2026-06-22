@@ -3,7 +3,9 @@
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { deleteTour, toggleTourActive } from './actions';
+import { AdminButton } from '@/components/admin/AdminButton';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
+import { deleteTour, toggleTourActive, duplicateTour } from './actions';
 
 export default function TourActions({
   id,
@@ -16,6 +18,7 @@ export default function TourActions({
 }) {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const confirm = useConfirm();
 
   function onToggle() {
     startTransition(async () => {
@@ -25,8 +28,14 @@ export default function TourActions({
     });
   }
 
-  function onDelete() {
-    if (!confirm(`Удалить тур «${title}»? Действие необратимо.`)) return;
+  async function onDelete() {
+    const ok = await confirm({
+      title: 'Удалить тур?',
+      body: `«${title}» — действие необратимо.`,
+      confirmLabel: 'Удалить',
+      destructive: true,
+    });
+    if (!ok) return;
     startTransition(async () => {
       await deleteTour(id);
       toast.success('Тур удалён');
@@ -34,22 +43,25 @@ export default function TourActions({
     });
   }
 
-  const btn =
-    'rounded-lg border border-edge bg-white px-2.5 py-1.5 text-[13px] disabled:opacity-60';
+  function onDuplicate() {
+    startTransition(async () => {
+      await duplicateTour(id);
+      toast.success('Создана копия (скрытая)');
+      router.refresh();
+    });
+  }
 
   return (
     <div className="flex gap-2">
-      <button type="button" onClick={onToggle} disabled={pending} className={btn}>
+      <AdminButton variant="secondary" size="sm" onClick={onToggle} disabled={pending}>
         {isActive ? 'Скрыть' : 'Показать'}
-      </button>
-      <button
-        type="button"
-        onClick={onDelete}
-        disabled={pending}
-        className={`${btn} border-[#F1C9C3] text-[#C0564B]`}
-      >
+      </AdminButton>
+      <AdminButton variant="secondary" size="sm" onClick={onDuplicate} disabled={pending}>
+        Дубликат
+      </AdminButton>
+      <AdminButton variant="destructive" size="sm" onClick={onDelete} disabled={pending}>
         Удалить
-      </button>
+      </AdminButton>
     </div>
   );
 }

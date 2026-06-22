@@ -1,5 +1,7 @@
 import { listBookings } from '@/lib/admin-bookings-data';
 import { STATUS_LABEL, BOOKING_STATUSES } from '@/lib/admin-bookings';
+import { PageHeader, AdminCard } from '@/components/admin/Page';
+import { AdminButton } from '@/components/admin/AdminButton';
 import StatusSelect from './StatusSelect';
 
 export const dynamic = 'force-dynamic';
@@ -14,21 +16,40 @@ function fmtDate(iso: string): string {
 export default async function AdminBookingsPage({
   searchParams,
 }: {
-  searchParams: { status?: string; q?: string };
+  searchParams: { status?: string; q?: string; page?: string };
 }) {
   const status = searchParams.status ?? 'all';
   const q = searchParams.q ?? '';
-  const bookings = await listBookings({ status, q });
+  const page = Math.max(1, Number(searchParams.page) || 1);
+  const { rows: bookings, total, pageSize } = await listBookings({ status, q, page });
   const seatsTotal = bookings.reduce((sum, b) => sum + (b.seats || 0), 0);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const exportParams = new URLSearchParams();
+  if (q) exportParams.set('q', q);
+  if (status !== 'all') exportParams.set('status', status);
+  const exportHref = `/admin/bookings/export${exportParams.toString() ? `?${exportParams}` : ''}`;
+  const qs = (p: number) => {
+    const sp = new URLSearchParams();
+    if (q) sp.set('q', q);
+    if (status !== 'all') sp.set('status', status);
+    sp.set('page', String(p));
+    return `?${sp.toString()}`;
+  };
 
   return (
     <div>
-      <div className="mb-5">
-        <h1 className="mb-1 text-[26px] font-bold text-navy">Брони</h1>
-        <p className="text-sm text-muted">
-          Найдено: {bookings.length} · мест суммарно: {seatsTotal}
-        </p>
-      </div>
+      <PageHeader
+        title="Брони"
+        subtitle={`Всего: ${total} · стр. ${page}/${totalPages} · мест на странице: ${seatsTotal}`}
+        action={
+          <a
+            href={exportHref}
+            className="inline-flex items-center gap-2 rounded-xl border border-edge bg-white px-[18px] py-2.5 text-sm font-semibold text-navy transition-colors hover:border-teal hover:text-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2"
+          >
+            Экспорт CSV
+          </a>
+        }
+      />
 
       {/* Filters */}
       <form method="get" className="mb-[18px] flex flex-wrap items-center gap-2.5">
@@ -41,9 +62,7 @@ export default async function AdminBookingsPage({
             </option>
           ))}
         </select>
-        <button type="submit" className="rounded-xl bg-teal px-[18px] py-2.5 text-sm font-semibold text-white">
-          Применить
-        </button>
+        <AdminButton type="submit">Применить</AdminButton>
       </form>
 
       {bookings.length === 0 ? (
@@ -51,7 +70,7 @@ export default async function AdminBookingsPage({
           Броней не найдено.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-edge bg-white p-4">
+        <AdminCard className="overflow-x-auto p-4">
           <table className="w-full min-w-[820px] border-collapse">
             <thead>
               <tr>
@@ -82,6 +101,32 @@ export default async function AdminBookingsPage({
               ))}
             </tbody>
           </table>
+        </AdminCard>
+      )}
+
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-3">
+          {page > 1 ? (
+            <AdminButton variant="secondary" size="sm" href={qs(page - 1)}>
+              ← Назад
+            </AdminButton>
+          ) : (
+            <AdminButton variant="secondary" size="sm" disabled>
+              ← Назад
+            </AdminButton>
+          )}
+          <span className="text-sm text-muted">
+            {page} / {totalPages}
+          </span>
+          {page < totalPages ? (
+            <AdminButton variant="secondary" size="sm" href={qs(page + 1)}>
+              Вперёд →
+            </AdminButton>
+          ) : (
+            <AdminButton variant="secondary" size="sm" disabled>
+              Вперёд →
+            </AdminButton>
+          )}
         </div>
       )}
     </div>

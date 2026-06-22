@@ -1,7 +1,9 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
-import Link from 'next/link';
+import { AdminButton } from '@/components/admin/AdminButton';
+import { FileInput } from '@/components/admin/FileInput';
+import { ListEditor } from '@/components/admin/ListEditor';
 import {
   TOUR_CATEGORIES,
   TOUR_COUNTRIES,
@@ -19,6 +21,12 @@ const labelCls = 'mb-1.5 block text-[13px] font-semibold text-navy';
 const cardCls = 'mb-5 rounded-2xl border border-edge bg-white p-6';
 const h2Cls = 'mb-4 text-base font-bold text-navy';
 
+const LIST_LOCALES: { lng: 'hy' | 'ru' | 'en'; tag: string; ph: string }[] = [
+  { lng: 'hy', tag: 'HY · հայերեն', ph: 'Добавить пункт (HY)' },
+  { lng: 'ru', tag: 'RU · русский', ph: 'Добавить пункт (RU)' },
+  { lng: 'en', tag: 'EN · english', ph: 'Add item (EN)' },
+];
+
 function toLocalInput(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -29,13 +37,9 @@ function toLocalInput(iso?: string): string {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-xl bg-teal px-6 py-3 text-[15px] font-semibold text-white transition-opacity disabled:opacity-70"
-    >
+    <AdminButton type="submit" disabled={pending}>
       {pending ? 'Сохранение…' : 'Сохранить'}
-    </button>
+    </AdminButton>
   );
 }
 
@@ -159,22 +163,29 @@ export default function TourForm({ action, initial }: { action: Action; initial?
 
       {/* Inclusions / Exclusions */}
       <div className={cardCls}>
-        <h2 className={h2Cls}>Что входит / не входит (каждый пункт с новой строки)</h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <h2 className={h2Cls}>Что входит / не входит</h2>
+        <p className="mb-4 text-xs text-muted">Добавляйте пункты по одному — Enter или «+». HY основной, RU/EN по желанию.</p>
+        <div className="grid gap-5 md:grid-cols-2">
           <div>
             <div className="mb-2 text-[13px] font-bold text-teal">✓ Входит в тур</div>
-            <div className="grid gap-2.5">
-              <textarea name="inclusions_ru" className="hb-in" rows={5} placeholder="Входит — Русский (по строке на пункт)" defaultValue={initial?.inclusions?.ru?.join('\n') ?? ''} />
-              <textarea name="inclusions_hy" className="hb-in" rows={5} placeholder="Входит — Armenian (HY)" defaultValue={initial?.inclusions?.hy?.join('\n') ?? ''} />
-              <textarea name="inclusions_en" className="hb-in" rows={5} placeholder="Includes — English (EN)" defaultValue={initial?.inclusions?.en?.join('\n') ?? ''} />
+            <div className="grid gap-3">
+              {LIST_LOCALES.map(({ lng, tag, ph }) => (
+                <div key={lng}>
+                  <div className="mb-1 text-[11px] font-bold uppercase tracking-wide text-muted">{tag}</div>
+                  <ListEditor name={`inclusions_${lng}`} initial={initial?.inclusions?.[lng] ?? []} placeholder={ph} />
+                </div>
+              ))}
             </div>
           </div>
           <div>
-            <div className="mb-2 text-[13px] font-bold text-[#C0564B]">✕ Не входит</div>
-            <div className="grid gap-2.5">
-              <textarea name="exclusions_ru" className="hb-in" rows={5} placeholder="Не входит — Русский (по строке на пункт)" defaultValue={initial?.exclusions?.ru?.join('\n') ?? ''} />
-              <textarea name="exclusions_hy" className="hb-in" rows={5} placeholder="Не входит — Armenian (HY)" defaultValue={initial?.exclusions?.hy?.join('\n') ?? ''} />
-              <textarea name="exclusions_en" className="hb-in" rows={5} placeholder="Excludes — English (EN)" defaultValue={initial?.exclusions?.en?.join('\n') ?? ''} />
+            <div className="mb-2 text-[13px] font-bold text-amber">✕ Не входит</div>
+            <div className="grid gap-3">
+              {LIST_LOCALES.map(({ lng, tag, ph }) => (
+                <div key={lng}>
+                  <div className="mb-1 text-[11px] font-bold uppercase tracking-wide text-muted">{tag}</div>
+                  <ListEditor name={`exclusions_${lng}`} initial={initial?.exclusions?.[lng] ?? []} placeholder={ph} />
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -183,22 +194,28 @@ export default function TourForm({ action, initial }: { action: Action; initial?
       {/* Photos */}
       <div className={cardCls}>
         <h2 className={h2Cls}>Фото тура</h2>
-        <input type="file" name="photos" accept="image/*" multiple />
-        <p className="mt-2 text-xs text-muted">
-          Можно выбрать несколько — они идут в карусель карточки. Первое фото становится обложкой. PNG/JPG/WebP, до 5 МБ каждое.
-          {initial ? ' Уже загруженные фото — ниже, под формой.' : ''}
-        </p>
+        <FileInput
+          name="photos"
+          multiple
+          label="Перетащите фото сюда или выберите"
+          hint={`Можно выбрать несколько — они идут в карусель карточки. Первое фото становится обложкой. PNG/JPG/WebP, до 5 МБ каждое.${
+            initial ? ' Уже загруженные фото — ниже, под формой.' : ''
+          }`}
+        />
       </div>
+
+      <p className="mb-3 text-xs text-muted">Поля со знаком * обязательны.</p>
 
       {!state.ok && state.error && (
         <div className="mb-4 rounded-[10px] bg-[#FCEDEB] px-3.5 py-3 text-sm text-[#C0564B]">{state.error}</div>
       )}
 
-      <div className="flex items-center gap-3">
+      {/* Sticky action bar — keeps Save reachable on the long edit page. */}
+      <div className="sticky bottom-0 z-30 -mx-1 mt-2 flex items-center gap-3 rounded-t-xl border-t border-edge bg-white/95 px-1 py-3 backdrop-blur">
         <SubmitButton />
-        <Link href="/admin/tours" className="text-sm text-muted no-underline">
+        <AdminButton variant="ghost" href="/admin/tours">
           Отмена
-        </Link>
+        </AdminButton>
       </div>
     </form>
   );

@@ -210,6 +210,80 @@ export async function toggleTourActive(id: string, next: boolean): Promise<void>
   revalidatePublic();
 }
 
+/** Bulk show/hide selected tours. */
+export async function bulkSetActive(ids: string[], next: boolean): Promise<void> {
+  await requireAdmin();
+  const db = createServiceSupabase();
+  if (!db || ids.length === 0) return;
+  await db.from('tours').update({ is_active: next }).in('id', ids);
+  revalidatePath('/admin/tours');
+  revalidatePublic();
+}
+
+/** Bulk delete selected tours. */
+export async function bulkDeleteTours(ids: string[]): Promise<void> {
+  await requireAdmin();
+  const db = createServiceSupabase();
+  if (!db || ids.length === 0) return;
+  await db.from('tours').delete().in('id', ids);
+  revalidatePath('/admin/tours');
+  revalidatePublic();
+}
+
+/** Clone a tour (row + gallery photo rows + stops) as a hidden draft copy. */
+export async function duplicateTour(id: string): Promise<void> {
+  await requireAdmin();
+  const db = createServiceSupabase();
+  if (!db) return;
+
+  const { data: src } = await db.from('tours').select('*').eq('id', id).single();
+  if (!src) return;
+
+  const s = src as Record<string, unknown>;
+  // Drop server-managed columns; the trigger maintains booked_seats.
+  delete s.id;
+  delete s.created_at;
+  delete s.updated_at;
+  s.booked_seats = 0;
+  s.is_active = false;
+  s.title_hy = `${(src.title_hy as string) ?? 'Тур'} (копия)`;
+  if (src.title_ru) s.title_ru = `${src.title_ru} (копия)`;
+
+  const { data: inserted, error } = await db.from('tours').insert(s).select('id').single();
+  if (error || !inserted) return;
+  const newId = inserted.id as string;
+
+  // Clone gallery photo rows (reuse the same public URLs).
+  const { data: photos } = await db
+    .from('tour_photos')
+    .select('photo_url, order_index')
+    .eq('tour_id', id);
+  if (photos?.length) {
+    await db.from('tour_photos').insert(
+      photos.map((p) => ({ tour_id: newId, photo_url: p.photo_url, order_index: p.order_index })),
+    );
+  }
+
+  // Clone stops (route points; stop photos are skipped). Best-effort.
+  try {
+    const { data: stops } = await db.from('stops').select('*').eq('tour_id', id);
+    if (stops?.length) {
+      const rows = stops.map((row) => {
+        const r = row as Record<string, unknown>;
+        delete r.id;
+        delete r.created_at;
+        r.tour_id = newId;
+        return r;
+      });
+      await db.from('stops').insert(rows);
+    }
+  } catch {
+    /* stops clone is best-effort */
+  }
+
+  revalidatePath('/admin/tours');
+}
+
 /** Persist a new photo order (array of photo ids, first = cover). */
 export async function reorderTourPhotos(tourId: string, orderedIds: string[]): Promise<void> {
   await requireAdmin();

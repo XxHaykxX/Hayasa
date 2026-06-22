@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getBrowserSupabase } from '@/lib/supabase-browser';
+import { AdminButton } from '@/components/admin/AdminButton';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -80,13 +81,9 @@ export default function AdminLoginPage() {
           <div className="mb-4 rounded-[10px] bg-[#FCEDEB] px-3 py-2.5 text-[13px] text-[#C0564B]">{error}</div>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-xl bg-teal px-3.5 py-3 text-[15px] font-semibold text-white transition-opacity disabled:opacity-70"
-        >
+        <AdminButton type="submit" disabled={loading} full>
           {loading ? 'Вход…' : 'Войти'}
-        </button>
+        </AdminButton>
       </form>
     </main>
   );

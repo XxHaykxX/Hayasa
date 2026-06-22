@@ -7,15 +7,23 @@ function db() {
   return createServiceSupabase() ?? createServerSupabase();
 }
 
-export type BookingFilters = { status?: string; q?: string };
+export type BookingFilters = { status?: string; q?: string; page?: number; pageSize?: number };
 
-export async function listBookings(filters: BookingFilters = {}): Promise<BookingRow[]> {
+export type BookingsPage = { rows: BookingRow[]; total: number; page: number; pageSize: number };
+
+export async function listBookings(filters: BookingFilters = {}): Promise<BookingsPage> {
+  const pageSize = filters.pageSize && filters.pageSize > 0 ? filters.pageSize : 25;
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const empty: BookingsPage = { rows: [], total: 0, page, pageSize };
+
   const client = db();
-  if (!client) return [];
+  if (!client) return empty;
 
   let query = client
     .from('bookings')
-    .select('id, tour_id, seats, status, full_name, phone, notes, source, created_at, tours(title_ru)')
+    .select('id, tour_id, seats, status, full_name, phone, notes, source, created_at, tours(title_ru)', {
+      count: 'exact',
+    })
     .order('created_at', { ascending: false });
 
   if (filters.status && filters.status !== 'all') {
@@ -26,10 +34,13 @@ export async function listBookings(filters: BookingFilters = {}): Promise<Bookin
     query = query.or(`full_name.ilike.%${q}%,phone.ilike.%${q}%`);
   }
 
-  const { data, error } = await query;
+  const from = (page - 1) * pageSize;
+  query = query.range(from, from + pageSize - 1);
+
+  const { data, error, count } = await query;
   if (error) {
     console.warn('[admin-bookings] list failed:', error.message);
-    return [];
+    return empty;
   }
-  return (data ?? []) as unknown as BookingRow[];
+  return { rows: (data ?? []) as unknown as BookingRow[], total: count ?? 0, page, pageSize };
 }

@@ -8,13 +8,36 @@ function db() {
   return createServiceSupabase() ?? createServerSupabase();
 }
 
-export async function listTours(): Promise<TourRow[]> {
+export type TourFilters = {
+  q?: string;
+  country?: string;
+  category?: string;
+  status?: string; // 'all' | 'active' | 'hidden'
+  sort?: string; // 'date_asc' | 'date_desc' | 'price_asc' | 'price_desc' | 'name_asc'
+};
+
+export async function listTours(f: TourFilters = {}): Promise<TourRow[]> {
   const client = db();
   if (!client) return [];
-  const { data, error } = await client
-    .from('tours')
-    .select('*')
-    .order('date_start', { ascending: true });
+
+  let query = client.from('tours').select('*');
+
+  if (f.q?.trim()) {
+    const q = f.q.trim();
+    query = query.or(
+      `title_hy.ilike.%${q}%,title_ru.ilike.%${q}%,location_hy.ilike.%${q}%,location_ru.ilike.%${q}%`,
+    );
+  }
+  if (f.country && f.country !== 'all') query = query.eq('country', f.country);
+  if (f.category && f.category !== 'all') query = query.eq('category', f.category);
+  if (f.status === 'active') query = query.eq('is_active', true);
+  else if (f.status === 'hidden') query = query.eq('is_active', false);
+
+  const [col, dir] = (f.sort ?? 'date_asc').split('_');
+  const column = col === 'price' ? 'price' : col === 'name' ? 'title_hy' : 'date_start';
+  query = query.order(column, { ascending: dir !== 'desc' });
+
+  const { data, error } = await query;
   if (error) {
     console.warn('[admin-tours] list failed:', error.message);
     return [];

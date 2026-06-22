@@ -152,6 +152,15 @@ export default function StopPlacePicker({
     placeOnMap(f.lat, f.lng, true);
   };
 
+  // Manual coordinate entry — fallback when search/map aren't enough. Moves the
+  // marker and recenters once both values parse as numbers.
+  const onManual = (which: 'lat' | 'lng', v: string) => {
+    cbRef.current({ [which]: v });
+    const lat = parseFloat(which === 'lat' ? v : valRef.current.lat);
+    const lng = parseFloat(which === 'lng' ? v : valRef.current.lng);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) placeOnMap(lat, lng, true);
+  };
+
   if (!KEY) {
     return <div className="text-[13px] text-[#C0564B]">Карта недоступна — нет NEXT_PUBLIC_YANDEX_MAPS_KEY.</div>;
   }
@@ -187,7 +196,33 @@ export default function StopPlacePicker({
         )}
       </div>
       <div ref={mapRef} className="mt-2 h-[220px] w-full overflow-hidden rounded-xl border border-edge" />
-      <p className="mt-1.5 text-[12px] text-muted">Кликните по карте или перетащите метку — координаты заполнятся сами.</p>
+      <p className="mt-1.5 text-[12px] text-muted">Кликните по карте, перетащите метку или введите координаты вручную.</p>
+      <div className="mt-2 grid grid-cols-2 gap-2.5">
+        <div>
+          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">Широта (lat)</label>
+          <input
+            type="number"
+            step="any"
+            inputMode="decimal"
+            className="hb-in"
+            value={value.lat}
+            onChange={(e) => onManual('lat', e.target.value)}
+            placeholder="40.11220"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">Долгота (lng)</label>
+          <input
+            type="number"
+            step="any"
+            inputMode="decimal"
+            className="hb-in"
+            value={value.lng}
+            onChange={(e) => onManual('lng', e.target.value)}
+            placeholder="44.73000"
+          />
+        </div>
+      </div>
     </div>
   );
 }

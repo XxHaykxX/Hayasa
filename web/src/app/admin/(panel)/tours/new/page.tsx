@@ -1,4 +1,5 @@
 import { createTour } from '../actions';
+import { PageHeader } from '@/components/admin/Page';
 import TourForm from '../TourForm';
 
 export const dynamic = 'force-dynamic';
@@ -6,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export default function NewTourPage() {
   return (
     <div className="max-w-[720px]">
-      <h1 className="mb-5 text-[26px] font-bold text-navy">Новый тур</h1>
+      <PageHeader title="Новый тур" />
       <TourForm action={createTour} />
     </div>
   );

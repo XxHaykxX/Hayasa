@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { toast } from 'sonner';
 import { CONTENT_FIELDS } from '@/lib/site-content';
+import { AdminButton } from '@/components/admin/AdminButton';
 import { saveContent, type ContentState } from './actions';
 
 const labelCls = 'mb-1.5 block text-[13px] font-semibold text-navy';
@@ -12,13 +13,9 @@ const cardCls = 'mb-5 max-w-[560px] rounded-2xl border border-edge bg-white p-6'
 function SaveButton() {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-xl bg-teal px-6 py-3 text-[15px] font-semibold text-white transition-opacity disabled:opacity-70"
-    >
+    <AdminButton type="submit" disabled={pending}>
       {pending ? 'Сохранение…' : 'Сохранить'}
-    </button>
+    </AdminButton>
   );
 }
 

@@ -7,8 +7,8 @@ export function Footer() {
   const t = useTranslations('Footer');
   const links: { href: string; label: string }[] = [
     { href: '/tours', label: t('allTours') },
-    { href: '/#about', label: t('aboutUs') },
-    { href: '/#contact', label: t('contact') },
+    { href: '/about', label: t('aboutUs') },
+    { href: '/contact', label: t('contact') },
   ];
 
   return (

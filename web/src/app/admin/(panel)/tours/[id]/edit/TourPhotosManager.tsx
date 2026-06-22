@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { deleteTourPhoto, reorderTourPhotos } from '../../actions';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
 import type { TourPhotoRow } from '@/lib/admin-tours-data';
 
 export default function TourPhotosManager({ tourId, photos }: { tourId: string; photos: TourPhotoRow[] }) {
@@ -12,14 +13,16 @@ export default function TourPhotosManager({ tourId, photos }: { tourId: string; 
   const [items, setItems] = useState(photos);
   const dragIndex = useRef<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
+  const confirm = useConfirm();
 
   // Keep local order in sync when the server sends a fresh list (after save/delete).
   useEffect(() => setItems(photos), [photos]);
 
   if (items.length === 0) return null;
 
-  const onDelete = (id: string) => {
-    if (!confirm('Удалить фото?')) return;
+  const onDelete = async (id: string) => {
+    const ok = await confirm({ title: 'Удалить фото?', confirmLabel: 'Удалить', destructive: true });
+    if (!ok) return;
     startTransition(async () => {
       await deleteTourPhoto(id, tourId);
       toast.success('Фото удалено');
@@ -90,6 +93,7 @@ export default function TourPhotosManager({ tourId, photos }: { tourId: string; 
                 onClick={() => move(i, i - 1)}
                 disabled={pending || i === 0}
                 title="Влево"
+                aria-label="Переместить фото влево"
                 className="flex h-5 w-5 items-center justify-center rounded bg-white/85 text-[12px] leading-none text-navy disabled:opacity-30"
               >
                 ‹
@@ -99,6 +103,7 @@ export default function TourPhotosManager({ tourId, photos }: { tourId: string; 
                 onClick={() => move(i, i + 1)}
                 disabled={pending || i === items.length - 1}
                 title="Вправо"
+                aria-label="Переместить фото вправо"
                 className="flex h-5 w-5 items-center justify-center rounded bg-white/85 text-[12px] leading-none text-navy disabled:opacity-30"
               >
                 ›
@@ -109,6 +114,7 @@ export default function TourPhotosManager({ tourId, photos }: { tourId: string; 
               onClick={() => onDelete(p.id)}
               disabled={pending}
               title="Удалить фото"
+              aria-label="Удалить фото"
               className="absolute right-1 top-1 h-[22px] w-[22px] rounded-full bg-[#C0564Bee] text-[13px] leading-[22px] text-white disabled:opacity-60"
             >
               ×
