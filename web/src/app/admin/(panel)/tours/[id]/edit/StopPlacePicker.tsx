@@ -162,7 +162,7 @@ export default function StopPlacePicker({
   };
 
   if (!KEY) {
-    return <div className="text-[13px] text-[#C0564B]">Карта недоступна — нет NEXT_PUBLIC_YANDEX_MAPS_KEY.</div>;
+    return <div className="text-[13px] text-[#C0564B]">Քարտեզն անհասանելի է — բացակայում է NEXT_PUBLIC_YANDEX_MAPS_KEY-ը:</div>;
   }
 
   return (
@@ -176,7 +176,7 @@ export default function StopPlacePicker({
             setQ(e.target.value);
           }}
           onFocus={() => results.length > 0 && setOpen(true)}
-          placeholder="Найти место: Гарни, Гегард, Хор Вирап…"
+          placeholder="Գտնել վայր՝ Գառնի, Գեղարդ, Խոր Վիրապ…"
           autoComplete="off"
         />
         {open && results.length > 0 && (
@@ -196,10 +196,10 @@ export default function StopPlacePicker({
         )}
       </div>
       <div ref={mapRef} className="mt-2 h-[220px] w-full overflow-hidden rounded-xl border border-edge" />
-      <p className="mt-1.5 text-[12px] text-muted">Кликните по карте, перетащите метку или введите координаты вручную.</p>
+      <p className="mt-1.5 text-[12px] text-muted">Սեղմեք քարտեզի վրա, քաշեք նշիչը կամ մուտքագրեք կոորդինատները ձեռքով:</p>
       <div className="mt-2 grid grid-cols-2 gap-2.5">
         <div>
-          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">Широта (lat)</label>
+          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">Լայնություն (lat)</label>
           <input
             type="number"
             step="any"
@@ -211,7 +211,7 @@ export default function StopPlacePicker({
           />
         </div>
         <div>
-          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">Долгота (lng)</label>
+          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">Երկայնություն (lng)</label>
           <input
             type="number"
             step="any"

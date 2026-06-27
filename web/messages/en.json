@@ -7,6 +7,7 @@
   "Nav": {
     "home": "Home",
     "tours": "Tours",
+    "school": "School tours",
     "destinations": "Destinations",
     "about": "About",
     "contact": "Contact",
@@ -16,6 +17,7 @@
     "tagline": "Group & cultural tours across Armenia and Georgia — in Armenian, Russian and English.",
     "explore": "EXPLORE",
     "allTours": "All Tours",
+    "school": "School tours",
     "aboutUs": "About Us",
     "contact": "Contact",
     "getInTouch": "GET IN TOUCH",
@@ -129,7 +131,7 @@
     "description": "A full day through the Azat valley, tracing two thousand years of Armenian history — from a Hellenistic temple to chambers carved deep into living rock. Comfortable transport, expert guide, and lunch in a mountain village included.",
     "route": "ROUTE",
     "routeMap": "ROUTE MAP",
-    "perPerson": "֏ / person",
+    "perPerson": "/ person",
     "departsIn": "DEPARTS IN",
     "seatsRemaining": "Seats remaining",
     "bookTour": "Book This Tour",
@@ -236,5 +238,13 @@
     "confirmed": "Confirmed",
     "paid": "Paid",
     "cancelled": "Cancelled"
+  },
+  "Newsletter": {
+    "title": "NEWSLETTER",
+    "desc": "Subscribe and be the first to hear about new tours and offers.",
+    "placeholder": "Your email",
+    "subscribe": "Subscribe",
+    "thanks": "Thank you! You're subscribed.",
+    "error": "Enter a valid email."
   }
 }

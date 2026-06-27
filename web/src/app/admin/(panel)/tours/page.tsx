@@ -8,15 +8,18 @@ import {
 import { PageHeader } from '@/components/admin/Page';
 import { AdminButton } from '@/components/admin/AdminButton';
 import ToursTableClient from './ToursTableClient';
+import ImportExportBar from './ImportExportBar';
 
 export const dynamic = 'force-dynamic';
 
 const SORTS: { value: string; label: string }[] = [
-  { value: 'date_asc', label: 'Дата ↑' },
-  { value: 'date_desc', label: 'Дата ↓' },
-  { value: 'price_asc', label: 'Цена ↑' },
-  { value: 'price_desc', label: 'Цена ↓' },
-  { value: 'name_asc', label: 'Название А→Я' },
+  { value: 'created_desc', label: 'Սկզբում նորերը' },
+  { value: 'created_asc', label: 'Սկզբում հները' },
+  { value: 'date_asc', label: 'Տուրի ամսաթիվ ↑' },
+  { value: 'date_desc', label: 'Տուրի ամսաթիվ ↓' },
+  { value: 'price_asc', label: 'Գին ↑' },
+  { value: 'price_desc', label: 'Գին ↓' },
+  { value: 'name_asc', label: 'Անվանումն Ա→Ֆ' },
 ];
 
 export default async function AdminToursPage({
@@ -28,7 +31,7 @@ export default async function AdminToursPage({
   const country = searchParams.country ?? 'all';
   const category = searchParams.category ?? 'all';
   const status = searchParams.status ?? 'all';
-  const sort = searchParams.sort ?? 'date_asc';
+  const sort = searchParams.sort ?? 'created_desc';
 
   const tours = await listTours({ q, country, category, status, sort });
   const filtered = !!(q || country !== 'all' || category !== 'all' || status !== 'all');
@@ -36,16 +39,18 @@ export default async function AdminToursPage({
   return (
     <div>
       <PageHeader
-        title="Туры"
-        subtitle={`${filtered ? 'Найдено' : 'Всего'}: ${tours.length}`}
-        action={<AdminButton href="/admin/tours/new">+ Новый тур</AdminButton>}
+        title="Տուրեր"
+        subtitle={`${filtered ? 'Գտնվեց' : 'Ընդամենը'}: ${tours.length}`}
+        action={<AdminButton href="/admin/tours/new">+ Նոր տուր</AdminButton>}
       />
+
+      <ImportExportBar />
 
       {/* Filters */}
       <form method="get" className="mb-[18px] flex flex-wrap items-center gap-2.5">
-        <input name="q" defaultValue={q} placeholder="Поиск по названию или локации" className="hb-in max-w-[260px]" />
+        <input name="q" defaultValue={q} placeholder="Որոնում ըստ անվան կամ վայրի" className="hb-in max-w-[260px]" />
         <select name="country" defaultValue={country} className="hb-in w-auto">
-          <option value="all">Все страны</option>
+          <option value="all">Բոլոր երկրները</option>
           {TOUR_COUNTRIES.map((c) => (
             <option key={c} value={c}>
               {COUNTRY_LABEL[c]}
@@ -53,7 +58,7 @@ export default async function AdminToursPage({
           ))}
         </select>
         <select name="category" defaultValue={category} className="hb-in w-auto">
-          <option value="all">Все категории</option>
+          <option value="all">Բոլոր կատեգորիաները</option>
           {TOUR_CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {CATEGORY_LABEL[c]}
@@ -61,9 +66,9 @@ export default async function AdminToursPage({
           ))}
         </select>
         <select name="status" defaultValue={status} className="hb-in w-auto">
-          <option value="all">Все статусы</option>
-          <option value="active">Активные</option>
-          <option value="hidden">Скрытые</option>
+          <option value="all">Բոլոր կարգավիճակները</option>
+          <option value="active">Ակտիվ</option>
+          <option value="hidden">Թաքնված</option>
         </select>
         <select name="sort" defaultValue={sort} className="hb-in w-auto">
           {SORTS.map((s) => (
@@ -72,17 +77,17 @@ export default async function AdminToursPage({
             </option>
           ))}
         </select>
-        <AdminButton type="submit">Применить</AdminButton>
+        <AdminButton type="submit">Կիրառել</AdminButton>
         {filtered && (
           <AdminButton variant="ghost" href="/admin/tours">
-            Сбросить
+            Զրոյացնել
           </AdminButton>
         )}
       </form>
 
       {tours.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-edge bg-white p-10 text-center text-muted">
-          {filtered ? 'Туры по фильтру не найдены.' : 'Туров пока нет. Создайте первый или засейте из mock-данных.'}
+          {filtered ? 'Զտիչով տուրեր չեն գտնվել.' : 'Տուրեր դեռ չկան. Ստեղծեք առաջինը կամ լրացրեք mock-տվյալներից.'}
         </div>
       ) : (
         <ToursTableClient tours={tours} />

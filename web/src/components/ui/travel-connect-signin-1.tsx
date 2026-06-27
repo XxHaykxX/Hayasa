@@ -257,6 +257,13 @@ const SignInCard = () => {
   const [info, setInfo] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
 
+  // Open directly in sign-up mode when the header links here with ?mode=signup.
+  useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mode") === "signup") {
+      setMode("signup");
+    }
+  }, []);
+
   const swap = (m: "signin" | "signup") => {
     setMode(m);
     setError("");
@@ -318,7 +325,10 @@ const SignInCard = () => {
       setError(t("notConfigured"));
       return;
     }
-    await supabase.auth.signInWithOAuth({ provider: "google" });
+    const redirectTo =
+      typeof window !== "undefined" ? `${window.location.origin}/my-tours` : undefined;
+    const { error: err } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
+    if (err) setError(err.message);
   };
 
   const forgot = async () => {

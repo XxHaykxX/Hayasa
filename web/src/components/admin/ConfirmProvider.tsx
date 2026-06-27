@@ -82,14 +82,14 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             {opts.body && <p className="mb-5 text-sm leading-relaxed text-muted">{opts.body}</p>}
             <div className="flex justify-end gap-2.5">
               <AdminButton variant="secondary" size="sm" onClick={() => close(false)}>
-                {opts.cancelLabel ?? 'Отмена'}
+                {opts.cancelLabel ?? 'Չեղարկել'}
               </AdminButton>
               <AdminButton
                 variant={opts.destructive ? 'destructive' : 'primary'}
                 size="sm"
                 onClick={() => close(true)}
               >
-                {opts.confirmLabel ?? 'Подтвердить'}
+                {opts.confirmLabel ?? 'Հաստատել'}
               </AdminButton>
             </div>
           </div>

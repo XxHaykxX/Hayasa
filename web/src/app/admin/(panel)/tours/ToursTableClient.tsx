@@ -16,7 +16,7 @@ const th = 'px-3 pb-2.5 text-left text-xs font-semibold uppercase tracking-wide 
 const td = 'border-t border-[#EAF2F1] px-3 py-3 align-middle text-sm';
 
 function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleString('ru-RU', {
+  return new Date(iso).toLocaleString('hy-AM', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -52,12 +52,12 @@ export default function ToursTableClient({ tours }: { tours: TourRow[] }) {
 
   const onBulkDelete = async () => {
     const ok = await confirm({
-      title: `Удалить выбранные туры (${ids.length})?`,
-      body: 'Действие необратимо.',
-      confirmLabel: 'Удалить',
+      title: `Ջնջել ընտրված տուրերը (${ids.length})?`,
+      body: 'Գործողությունն անշրջելի է.',
+      confirmLabel: 'Ջնջել',
       destructive: true,
     });
-    if (ok) runBulk(() => bulkDeleteTours(ids), 'Туры удалены');
+    if (ok) runBulk(() => bulkDeleteTours(ids), 'Տուրերը ջնջվեցին');
   };
 
   return (
@@ -65,16 +65,16 @@ export default function ToursTableClient({ tours }: { tours: TourRow[] }) {
       {/* Bulk action bar */}
       {sel.size > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-2.5 rounded-xl border border-edge bg-aqua px-4 py-2.5">
-          <span className="text-sm font-semibold text-navy">Выбрано: {sel.size}</span>
+          <span className="text-sm font-semibold text-navy">Ընտրված: {sel.size}</span>
           <div className="ml-auto flex flex-wrap gap-2">
-            <AdminButton variant="secondary" size="sm" disabled={pending} onClick={() => runBulk(() => bulkSetActive(ids, true), 'Показаны')}>
-              Показать
+            <AdminButton variant="secondary" size="sm" disabled={pending} onClick={() => runBulk(() => bulkSetActive(ids, true), 'Ցուցադրվեց')}>
+              Ցուցադրել
             </AdminButton>
-            <AdminButton variant="secondary" size="sm" disabled={pending} onClick={() => runBulk(() => bulkSetActive(ids, false), 'Скрыты')}>
-              Скрыть
+            <AdminButton variant="secondary" size="sm" disabled={pending} onClick={() => runBulk(() => bulkSetActive(ids, false), 'Թաքցվեց')}>
+              Թաքցնել
             </AdminButton>
             <AdminButton variant="destructive" size="sm" disabled={pending} onClick={onBulkDelete}>
-              Удалить
+              Ջնջել
             </AdminButton>
           </div>
         </div>
@@ -85,15 +85,15 @@ export default function ToursTableClient({ tours }: { tours: TourRow[] }) {
           <thead>
             <tr>
               <th className={`${th} w-8`}>
-                <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="Выбрать все" />
+                <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="Ընտրել բոլորը" />
               </th>
-              <th className={th}>Название</th>
-              <th className={th}>Страна</th>
-              <th className={th}>Категория</th>
-              <th className={th}>Дата</th>
-              <th className={th}>Цена</th>
-              <th className={th}>Места</th>
-              <th className={th}>Статус</th>
+              <th className={th}>Անվանում</th>
+              <th className={th}>Երկիր</th>
+              <th className={th}>Կատեգորիա</th>
+              <th className={th}>Ամսաթիվ</th>
+              <th className={th}>Գին</th>
+              <th className={th}>Տեղեր</th>
+              <th className={th}>Կարգավիճակ</th>
               <th className={th}></th>
             </tr>
           </thead>
@@ -108,7 +108,7 @@ export default function ToursTableClient({ tours }: { tours: TourRow[] }) {
                       type="checkbox"
                       checked={sel.has(t.id)}
                       onChange={() => toggle(t.id)}
-                      aria-label={`Выбрать «${name}»`}
+                      aria-label={`Ընտրել «${name}»`}
                     />
                   </td>
                   <td className={td}>
@@ -122,7 +122,7 @@ export default function ToursTableClient({ tours }: { tours: TourRow[] }) {
                   </td>
                   <td className={td}>{fmtDate(t.date_start)}</td>
                   <td className={td}>
-                    {t.price.toLocaleString('ru-RU')} {t.currency}
+                    {t.price.toLocaleString('hy-AM')} {t.currency}
                   </td>
                   <td className={td}>
                     {t.booked_seats}/{t.max_seats}
@@ -132,7 +132,7 @@ export default function ToursTableClient({ tours }: { tours: TourRow[] }) {
                       className="rounded-full px-2.5 py-1 text-xs font-semibold"
                       style={{ background: badge.bg, color: badge.fg }}
                     >
-                      {t.is_active ? 'Активен' : 'Скрыт'}
+                      {t.is_active ? 'Ակտիվ' : 'Թաքնված'}
                     </span>
                   </td>
                   <td className={td}>

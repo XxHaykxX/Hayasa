@@ -9,7 +9,7 @@ function SubmitBtn() {
   const { pending } = useFormStatus();
   return (
     <AdminButton type="submit" disabled={pending}>
-      {pending ? 'Импорт…' : 'Импортировать'}
+      {pending ? 'Ներմուծում…' : 'Ներմուծել'}
     </AdminButton>
   );
 }
@@ -20,9 +20,9 @@ export function ImportFromUrl() {
   const [state, action] = useFormState<ActionState, FormData>(importTourFromUrl, { ok: true });
   return (
     <form action={action} className="mb-6 rounded-2xl border border-edge bg-aqua p-5">
-      <div className="mb-1 text-sm font-bold text-navy">Импорт из URL</div>
+      <div className="mb-1 text-sm font-bold text-navy">Ներմուծում URL-ից</div>
       <p className="mb-3 text-xs text-muted">
-        Вставьте ссылку на страницу тура — заполним черновик автоматически. Потом проверьте, добавьте координаты остановок и фото, и сохраните.
+        Տեղադրեք տուրի էջի հղումը — սևագիրը կլրացնենք ավտոմատ. Հետո ստուգեք, ավելացրեք կանգառների կոորդինատներն ու լուսանկարները և պահպանեք.
       </p>
       <div className="flex flex-wrap gap-2">
         <input

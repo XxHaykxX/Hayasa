@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { Shell } from '@/components/layout/Shell';
@@ -10,7 +10,9 @@ import { Scenery } from '@/components/ui/Scenery';
 import { Btn } from '@/components/ui/Btn';
 import { Field } from '@/components/ui/Field';
 import { L, type Tour } from '@/lib/tours';
+import { useCurrency } from '@/components/currency/CurrencyProvider';
 import { createBooking } from '@/lib/db';
+import { getSupabase } from '@/lib/supabase';
 import { BOOKING_TERMS as TERMS, DEPOSIT_PCT } from '@/lib/booking-terms';
 
 type Errors = { firstName?: string; lastName?: string; phone?: string };
@@ -19,26 +21,60 @@ export default function BookingClient({ tour, office }: { tour: Tour; office: st
   const t = useTranslations('Booking');
   const locale = useLocale();
   const tourName = L(tour.name, locale);
-  const [firstName, setFirstName] = useState('Areg');
-  const [lastName, setLastName] = useState('Petrosyan');
-  const [phone, setPhone] = useState('91 23 45 67');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
-  const [seats, setSeats] = useState(2);
+  const [seats, setSeats] = useState(1);
   const [errors, setErrors] = useState<Errors>({});
   const [sending, setSending] = useState(false);
+
+  // Prefill from the signed-in user's profile (Google or saved profile), but
+  // leave every field editable — only fill blanks the user hasn't touched.
+  useEffect(() => {
+    const sb = getSupabase();
+    if (!sb) return;
+    let active = true;
+    (async () => {
+      const {
+        data: { user },
+      } = await sb.auth.getUser();
+      if (!user || !active) return;
+      const { data: p } = await sb
+        .from('profiles')
+        .select('first_name,last_name,phone')
+        .eq('id', user.id)
+        .single();
+      const meta = (user.user_metadata ?? {}) as Record<string, string>;
+      const fullName = meta.full_name || meta.name || '';
+      const fn = p?.first_name || meta.given_name || fullName.split(' ')[0] || '';
+      const ln = p?.last_name || meta.family_name || fullName.split(' ').slice(1).join(' ') || '';
+      const ph = (p?.phone || '').replace(/\D/g, '').slice(-8);
+      if (!active) return;
+      setFirstName((prev) => prev || fn);
+      setLastName((prev) => prev || ln);
+      setPhone((prev) => prev || ph);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const [submitted, setSubmitted] = useState(false);
   const [persisted, setPersisted] = useState(true);
   const [submitError, setSubmitError] = useState('');
 
-  const unit = parseInt(tour.price.replace(/\s/g, ''), 10);
-  const total = (unit * seats).toLocaleString('ru-RU');
-  const prepay = Math.round(unit * seats * (DEPOSIT_PCT / 100)).toLocaleString('ru-RU');
+  const { format } = useCurrency();
+  const unit = tour.priceAmd;
+  const totalAmd = unit * seats;
+  const total = format(totalAmd);
+  const prepay = format(Math.round(totalAmd * (DEPOSIT_PCT / 100)));
 
   function validate(): Errors {
     const next: Errors = {};
     if (!firstName.trim()) next.firstName = t('errFirstName');
     if (!lastName.trim()) next.lastName = t('errLastName');
-    if (phone.replace(/\D/g, '').length < 6) next.phone = t('errPhone');
+    if (phone.length !== 8) next.phone = t('errPhone');
     return next;
   }
 
@@ -55,7 +91,7 @@ export default function BookingClient({ tour, office }: { tour: Tour; office: st
       tourId: tour.id,
       seats,
       fullName: `${firstName.trim()} ${lastName.trim()}`,
-      phone: `+374 ${phone.trim()}`,
+      phone: `+374${phone}`,
       notes: notes.trim() || undefined,
     });
     setSending(false);
@@ -85,7 +121,7 @@ export default function BookingClient({ tour, office }: { tour: Tour; office: st
             </div>
             <h1 className="font-display text-[32px] font-bold text-navy leading-tight mb-3">{t('successTitle')}</h1>
             <p className="font-body text-[15px] text-muted leading-relaxed mb-4">
-              {t('successBody', { name: firstName, phone: `+374 ${phone}`, seats, tour: tourName })}
+              {t('successBody', { name: firstName, phone: `+374${phone}`, seats, tour: tourName })}
             </p>
             {!persisted && (
               <p className="font-body text-[13px] text-amber-dark leading-snug mb-8 max-w-[420px] mx-auto">
@@ -119,16 +155,23 @@ export default function BookingClient({ tour, office }: { tour: Tour; office: st
           <div className="grid gap-6">
             <div className="grid sm:grid-cols-2 grid-cols-1 gap-5">
               <Field label={t('firstName')} error={errors.firstName}>
-                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="hb-in" />
+                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={t('firstName')} className="hb-in" />
               </Field>
               <Field label={t('lastName')} error={errors.lastName}>
-                <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="hb-in" />
+                <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={t('lastName')} className="hb-in" />
               </Field>
             </div>
             <Field label={t('phone')} error={errors.phone}>
               <div className="flex items-center rounded-xl border border-edge bg-white focus-within:border-teal">
                 <span className="font-mono text-sm text-muted px-3.5 border-r border-edge">+374</span>
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" className="flex-1 bg-transparent px-3 py-3 font-body text-[15px] text-navy outline-none" />
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                  inputMode="numeric"
+                  maxLength={8}
+                  placeholder="91234567"
+                  className="flex-1 bg-transparent px-3 py-3 font-body text-[15px] text-navy outline-none"
+                />
               </div>
             </Field>
             <Field label={t('seats')}>
@@ -190,18 +233,16 @@ export default function BookingClient({ tour, office }: { tour: Tour; office: st
                 {tour.date}
               </div>
               <div className="flex justify-between font-body text-sm text-navy mb-2">
-                <span className="text-muted">{seats} × {tour.price} ֏</span>
-                <span className="font-mono">{total} ֏</span>
+                <span className="text-muted">{seats} × {format(unit)}</span>
+                <span className="font-mono">{total}</span>
               </div>
               <div className="flex justify-between items-baseline pt-3 mt-1 border-t border-edge mb-5">
                 <span className="font-body font-bold text-navy">{t('total')}</span>
-                <span className="font-mono text-2xl font-bold text-navy">
-                  {total} <span className="text-base text-muted">֏</span>
-                </span>
+                <span className="font-mono text-2xl font-bold text-navy">{total}</span>
               </div>
               <div className="flex items-baseline justify-between rounded-xl bg-teal/10 px-4 py-3 mb-3">
                 <span className="font-body text-sm font-bold text-teal-dark">{L(TERMS.prepaymentTitle, locale)} ({DEPOSIT_PCT}%)</span>
-                <span className="font-mono text-lg font-bold text-teal-dark">{prepay} ֏</span>
+                <span className="font-mono text-lg font-bold text-teal-dark">{prepay}</span>
               </div>
               <div className="rounded-xl bg-aqua px-4 py-3 mb-5 font-body text-[13px] text-muted leading-snug">{t('offlineNote')}</div>
               <Btn variant="amber" size="lg" full icon="check" type="submit">

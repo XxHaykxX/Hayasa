@@ -28,12 +28,12 @@ export async function GET(req: Request) {
     const s = String(v ?? '');
     return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  const header = ['Дата', 'Тур', 'Имя', 'Телефон', 'Мест', 'Статус', 'Заметки'];
+  const header = ['Ամսաթիվ', 'Տուր', 'Անուն', 'Հեռախոս', 'Տեղեր', 'Կարգավիճակ', 'Նշումներ'];
   const rows = ((data ?? []) as Array<Record<string, unknown>>).map((b) => {
     const tours = b.tours as { title_ru?: string; title_hy?: string } | null;
     const tour = tours?.title_hy || tours?.title_ru || (b.notes as string) || '';
     return [
-      new Date(b.created_at as string).toLocaleString('ru-RU'),
+      new Date(b.created_at as string).toLocaleString('hy-AM'),
       tour,
       b.full_name,
       b.phone,

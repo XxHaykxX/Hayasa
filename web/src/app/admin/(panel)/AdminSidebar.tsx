@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Map, Calendar, Settings, PanelLeftClose, PanelLeftOpen, LogOut, Menu, X } from 'lucide-react';
+import { Home, Map, Calendar, Settings, Users, Image as ImageIcon, PanelLeftClose, PanelLeftOpen, LogOut, Menu, X } from 'lucide-react';
 
 const NAV = [
-  { href: '/admin', label: 'Дашборд', Icon: Home, exact: true },
-  { href: '/admin/tours', label: 'Туры', Icon: Map, exact: false },
-  { href: '/admin/bookings', label: 'Брони', Icon: Calendar, exact: false },
-  { href: '/admin/content', label: 'Контент', Icon: Settings, exact: false },
+  { href: '/admin', label: 'Վահանակ', Icon: Home, exact: true },
+  { href: '/admin/tours', label: 'Տուրեր', Icon: Map, exact: false },
+  { href: '/admin/gallery', label: 'Պատկերասրահ', Icon: ImageIcon, exact: false },
+  { href: '/admin/bookings', label: 'Ամրագրումներ', Icon: Calendar, exact: false },
+  { href: '/admin/content', label: 'Բովանդակություն', Icon: Settings, exact: false },
+  { href: '/admin/team', label: 'Թիմ', Icon: Users, exact: false },
 ];
 
 export function AdminSidebar({ email, signOut }: { email: string; signOut: () => void | Promise<void> }) {
@@ -24,7 +26,7 @@ export function AdminSidebar({ email, signOut }: { email: string; signOut: () =>
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          aria-label="Открыть меню"
+          aria-label="Բացել մենյուն"
           className="rounded-lg border border-edge p-2 text-navy"
         >
           <Menu className="h-5 w-5" />
@@ -55,7 +57,7 @@ export function AdminSidebar({ email, signOut }: { email: string; signOut: () =>
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
-            aria-label="Закрыть меню"
+            aria-label="Փակել մենյուն"
             className="ml-auto rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white md:hidden"
           >
             <X className="h-5 w-5" />
@@ -87,26 +89,26 @@ export function AdminSidebar({ email, signOut }: { email: string; signOut: () =>
           <form action={signOut}>
             <button
               type="submit"
-              title="Выйти"
+              title="Ելք"
               className={`flex w-full items-center gap-3 rounded-xl bg-white/10 px-3 py-2.5 text-sm transition-colors hover:bg-white/20 ${
                 open ? '' : 'md:justify-center'
               }`}
             >
               <LogOut className="h-[18px] w-[18px] flex-none" />
-              {open && 'Выйти'}
+              {open && 'Ելք'}
             </button>
           </form>
           {/* Desktop collapse toggle (hidden on mobile — drawer is full width there) */}
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
-            title={open ? 'Свернуть меню' : 'Развернуть меню'}
+            title={open ? 'Ծալել մենյուն' : 'Բացել մենյուն'}
             className={`mt-2 hidden w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#9FB8C0] transition-colors hover:bg-white/10 hover:text-white md:flex ${
               open ? '' : 'md:justify-center'
             }`}
           >
             {open ? <PanelLeftClose className="h-[18px] w-[18px] flex-none" /> : <PanelLeftOpen className="h-[18px] w-[18px] flex-none" />}
-            {open && 'Свернуть'}
+            {open && 'Ծալել'}
           </button>
         </div>
       </aside>

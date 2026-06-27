@@ -8,7 +8,7 @@ import { Upload } from 'lucide-react';
 // that supports click + drag-and-drop and lists the chosen file names.
 export function FileInput({
   name,
-  label = 'Выбрать файлы',
+  label = 'Ընտրել ֆայլեր',
   accept = 'image/*',
   multiple = false,
   required = false,
@@ -49,7 +49,7 @@ export function FileInput({
         }`}
       >
         <Upload className="h-4 w-4" />
-        {names.length > 0 ? `Выбрано: ${names.length}` : label}
+        {names.length > 0 ? `Ընտրված է: ${names.length}` : label}
         <input
           ref={ref}
           type="file"

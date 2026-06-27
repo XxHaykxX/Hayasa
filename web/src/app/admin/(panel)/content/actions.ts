@@ -12,7 +12,7 @@ const clean = (v: FormDataEntryValue | null) => ((v as string) ?? '').trim() || 
 export async function saveContent(_prev: ContentState, formData: FormData): Promise<ContentState> {
   await requireAdmin();
   const db = createServiceSupabase();
-  if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
+  if (!db) return { ok: false, error: 'Տվյալների բազայի հասանելիություն չկա (service key)։' };
 
   const now = new Date().toISOString();
   const rows = CONTENT_FIELDS.map((f) =>

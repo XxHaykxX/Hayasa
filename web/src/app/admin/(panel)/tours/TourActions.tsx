@@ -23,22 +23,22 @@ export default function TourActions({
   function onToggle() {
     startTransition(async () => {
       await toggleTourActive(id, !isActive);
-      toast.success(isActive ? 'Тур скрыт' : 'Тур показан');
+      toast.success(isActive ? 'Տուրը թաքցվեց' : 'Տուրը ցուցադրվեց');
       router.refresh();
     });
   }
 
   async function onDelete() {
     const ok = await confirm({
-      title: 'Удалить тур?',
-      body: `«${title}» — действие необратимо.`,
-      confirmLabel: 'Удалить',
+      title: 'Ջնջել տուրը?',
+      body: `«${title}» — գործողությունն անշրջելի է.`,
+      confirmLabel: 'Ջնջել',
       destructive: true,
     });
     if (!ok) return;
     startTransition(async () => {
       await deleteTour(id);
-      toast.success('Тур удалён');
+      toast.success('Տուրը ջնջվեց');
       router.refresh();
     });
   }
@@ -46,7 +46,7 @@ export default function TourActions({
   function onDuplicate() {
     startTransition(async () => {
       await duplicateTour(id);
-      toast.success('Создана копия (скрытая)');
+      toast.success('Ստեղծվեց պատճեն (թաքնված)');
       router.refresh();
     });
   }
@@ -54,13 +54,13 @@ export default function TourActions({
   return (
     <div className="flex gap-2">
       <AdminButton variant="secondary" size="sm" onClick={onToggle} disabled={pending}>
-        {isActive ? 'Скрыть' : 'Показать'}
+        {isActive ? 'Թաքցնել' : 'Ցուցադրել'}
       </AdminButton>
       <AdminButton variant="secondary" size="sm" onClick={onDuplicate} disabled={pending}>
-        Дубликат
+        Կրկնօրինակ
       </AdminButton>
       <AdminButton variant="destructive" size="sm" onClick={onDelete} disabled={pending}>
-        Удалить
+        Ջնջել
       </AdminButton>
     </div>
   );

@@ -8,7 +8,7 @@ export default async function AdminContentPage() {
   const values = await getContentMapAdmin();
   return (
     <div>
-      <PageHeader title="Контент сайта" subtitle="Пусто = используется значение по умолчанию." />
+      <PageHeader title="Կայքի բովանդակություն" subtitle="Դատարկ = օգտագործվում է կանխադրված արժեքը։" />
       <ContentForm values={values} />
     </div>
   );

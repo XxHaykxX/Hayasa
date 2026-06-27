@@ -5,10 +5,10 @@ export const BOOKING_STATUSES = ['pending', 'confirmed', 'paid', 'cancelled'] as
 export type BookingStatusValue = (typeof BOOKING_STATUSES)[number];
 
 export const STATUS_LABEL: Record<BookingStatusValue, string> = {
-  pending: 'Ожидает',
-  confirmed: 'Подтверждена',
-  paid: 'Оплачена',
-  cancelled: 'Отменена',
+  pending: 'Սպասման մեջ',
+  confirmed: 'Հաստատված',
+  paid: 'Վճարված',
+  cancelled: 'Չեղարկված',
 };
 
 export type BookingRow = {
@@ -21,5 +21,5 @@ export type BookingRow = {
   notes: string | null;
   source: string;
   created_at: string;
-  tours: { title_hy: string | null; title_ru: string | null } | null;
+  tours: { title_hy: string | null; title_ru: string | null; price: number | null } | null;
 };

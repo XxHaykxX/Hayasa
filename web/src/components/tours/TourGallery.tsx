@@ -1,25 +1,26 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import Image from 'next/image';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Icon } from '@/components/ui/Icon';
 
 // Hero gallery for the tour detail page: main image + clickable thumbnails,
 // arrows, dots, swipe and keyboard nav. Use only when there is ≥1 photo.
+// All frames are rendered stacked (preloaded) and cross-faded by opacity, so
+// switching is instant — no per-click network fetch. Photos are already
+// optimized (16:10 WebP), so we serve them straight from the CDN with a plain
+// <img>, skipping the next/image optimizer round-trip.
 export function TourGallery({ images, alt }: { images: string[]; alt: string }) {
-  const [[i, dir], setState] = useState<[number, number]>([0, 0]);
-  const reduce = useReducedMotion();
+  const [i, setI] = useState(0);
   const n = images.length;
   const startX = useRef(0);
 
-  const go = (d: number) => setState(([p]) => [(p + d + n) % n, d]);
-  const jump = (to: number) => setState(([p]) => [to, to > p ? 1 : -1]);
+  const go = (d: number) => setI((p) => (p + d + n) % n);
+  const jump = (to: number) => setI(to);
 
   return (
     <div className="mb-8">
       <div
-        className={`group relative h-[360px] overflow-hidden rounded-[14px] mb-3 outline-none ${n > 1 ? 'cursor-grab active:cursor-grabbing' : ''}`}
+        className={`group relative h-[360px] overflow-hidden rounded-[14px] mb-3 bg-[#EAF2F1] outline-none ${n > 1 ? 'cursor-grab active:cursor-grabbing' : ''}`}
         tabIndex={0}
         role="group"
         aria-roledescription="карусель"
@@ -34,18 +35,20 @@ export function TourGallery({ images, alt }: { images: string[]; alt: string }) 
           if (Math.abs(dx) > 40 && n > 1) go(dx < 0 ? 1 : -1);
         }}
       >
-        <AnimatePresence initial={false}>
-          <motion.div
-            key={i}
-            className="absolute inset-0"
-            initial={reduce ? false : { opacity: 0, x: dir * 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, x: dir * -40 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <Image src={images[i]} alt={alt} fill priority={i === 0} sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" />
-          </motion.div>
-        </AnimatePresence>
+        {images.map((src, d) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={d}
+            src={src}
+            alt={d === i ? alt : ''}
+            aria-hidden={d !== i}
+            loading={d === 0 ? 'eager' : 'lazy'}
+            draggable={false}
+            className={`absolute inset-0 h-full w-full select-none object-cover transition-opacity duration-300 ${
+              d === i ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        ))}
         {n > 1 && (
           <>
             <button
@@ -92,7 +95,8 @@ export function TourGallery({ images, alt }: { images: string[]; alt: string }) 
               aria-current={d === i}
               className={`relative h-[72px] flex-1 overflow-hidden rounded-lg transition-all ${d === i ? 'ring-2 ring-amber' : 'opacity-70 hover:opacity-100'}`}
             >
-              <Image src={img} alt="" fill sizes="160px" className="object-cover" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img} alt="" loading="lazy" draggable={false} className="absolute inset-0 h-full w-full select-none object-cover" />
             </button>
           ))}
         </div>

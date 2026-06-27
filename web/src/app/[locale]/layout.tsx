@@ -5,6 +5,8 @@ import { getMessages, getTranslations } from 'next-intl/server';
 import { Inter, Cormorant_Garamond, JetBrains_Mono } from 'next/font/google';
 import { routing } from '@/i18n/routing';
 import { OG_IMAGE, altLanguages } from '@/lib/seo';
+import { getRates } from '@/lib/rates-data';
+import { CurrencyProvider } from '@/components/currency/CurrencyProvider';
 import '../globals.css';
 
 const body = Inter({ subsets: ['latin'], variable: '--font-body' });
@@ -59,11 +61,14 @@ export default async function LocaleLayout({
   }
 
   const messages = await getMessages();
+  const rates = await getRates();
 
   return (
     <html lang={locale} className={`${body.variable} ${display.variable} ${mono.variable}`}>
       <body className="font-body antialiased">
-        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
+          <CurrencyProvider rates={rates}>{children}</CurrencyProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

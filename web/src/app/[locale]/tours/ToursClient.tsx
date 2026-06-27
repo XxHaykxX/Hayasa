@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { Shell } from '@/components/layout/Shell';
+import { Link } from '@/i18n/navigation';
 import { Icon } from '@/components/ui/Icon';
 import { TourCard } from '@/components/tours/TourCard';
 import { Reveal } from '@/components/motion/Reveal';
@@ -26,6 +27,7 @@ const monthIndex = (ts: number) => {
 
 export default function ToursClient({ tours }: { tours: Tour[] }) {
   const t = useTranslations('Tours');
+  const tSchool = useTranslations('Nav');
   const locale = useLocale();
   const searchParams = useSearchParams();
   const [region, setRegion] = useState<string | null>(searchParams.get('region'));
@@ -119,6 +121,26 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
           <h1 className="font-display text-[42px] font-bold text-navy leading-none mb-2">{t('title')}</h1>
           <p className="font-body text-muted">{t('subtitle', { count: filtered.length })}</p>
         </Reveal>
+      </div>
+      <div className="mx-auto max-w-[1200px] px-6 pt-8">
+        <Link
+          href="/school-tours"
+          className="group flex items-center justify-between gap-4 rounded-[14px] border border-edge bg-navy px-6 py-5 text-white transition-shadow hover:shadow-[0_12px_30px_rgba(26,58,92,0.18)]"
+        >
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:grid size-11 flex-none place-content-center rounded-full bg-yellow text-navy">
+              <Icon name="users" size={22} color="currentColor" />
+            </span>
+            <div>
+              <div className="font-display text-xl font-bold leading-tight">{tSchool('school')}</div>
+              <p className="font-body text-sm text-white/65">Դասարանով ճանապարհ՝ տրանսպորտ և գիդ ներառված, գներ՝ մեկ աշակերտի համար.</p>
+            </div>
+          </div>
+          <span className="flex-none inline-flex items-center gap-1.5 font-body text-sm font-bold text-yellow">
+            <span className="hidden sm:inline">Դիտել</span>
+            <Icon name="arrowRight" size={18} color="currentColor" />
+          </span>
+        </Link>
       </div>
       <div className="mx-auto max-w-[1200px] px-6 py-8">
         <div className="flex flex-col gap-4 mb-9">

@@ -33,8 +33,10 @@ export async function listTours(f: TourFilters = {}): Promise<TourRow[]> {
   if (f.status === 'active') query = query.eq('is_active', true);
   else if (f.status === 'hidden') query = query.eq('is_active', false);
 
-  const [col, dir] = (f.sort ?? 'date_asc').split('_');
-  const column = col === 'price' ? 'price' : col === 'name' ? 'title_hy' : 'date_start';
+  // Default: newest-created first, so a tour you just added is at the top.
+  const [col, dir] = (f.sort ?? 'created_desc').split('_');
+  const column =
+    col === 'price' ? 'price' : col === 'name' ? 'title_hy' : col === 'date' ? 'date_start' : 'created_at';
   query = query.order(column, { ascending: dir !== 'desc' });
 
   const { data, error } = await query;

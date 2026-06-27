@@ -14,7 +14,7 @@ function SaveButton() {
   const { pending } = useFormStatus();
   return (
     <AdminButton type="submit" disabled={pending}>
-      {pending ? 'Сохранение…' : 'Сохранить'}
+      {pending ? 'Պահպանվում է…' : 'Պահպանել'}
     </AdminButton>
   );
 }
@@ -29,14 +29,14 @@ export default function ContentForm({
   useEffect(() => {
     if (state === lastState.current) return;
     lastState.current = state;
-    if (state.saved) toast.success('Контент сохранён');
+    if (state.saved) toast.success('Բովանդակությունը պահպանվեց');
     else if (state.ok === false && state.error) toast.error(state.error);
   }, [state]);
 
   return (
     <form action={formAction}>
       <div className={cardCls}>
-        <h2 className="mb-4 text-base font-bold text-navy">Контакты</h2>
+        <h2 className="mb-4 text-base font-bold text-navy">Կապեր</h2>
         <div className="grid gap-3.5">
           {CONTENT_FIELDS.filter((f) => f.group === 'contacts').map((f) => (
             <div key={f.key}>
@@ -48,8 +48,8 @@ export default function ContentForm({
       </div>
 
       <div className={cardCls}>
-        <h2 className="mb-1 text-base font-bold text-navy">Главный экран (Hero)</h2>
-        <p className="mb-4 text-xs text-muted">Пусто = текст по умолчанию из переводов сайта.</p>
+        <h2 className="mb-1 text-base font-bold text-navy">Գլխավոր էկրան (Hero)</h2>
+        <p className="mb-4 text-xs text-muted">Դատարկ = կանխադրված տեքստ կայքի թարգմանություններից։</p>
         <div className="grid gap-4">
           {CONTENT_FIELDS.filter((f) => f.group === 'hero').map((f) => (
             <div key={f.key}>

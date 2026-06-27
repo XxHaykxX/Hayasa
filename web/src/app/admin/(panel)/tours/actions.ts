@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/lib/admin-auth';
 import { createServiceSupabase } from '@/lib/supabase-server';
-import { tourSchema, validateImage } from '@/lib/admin-tours';
+import { tourSchema, validateImage, legacyLanguage } from '@/lib/admin-tours';
+import { recordMedia } from '@/lib/admin-media-data';
+import { processImage } from '@/lib/image-process';
 import { geocodePlaces } from '@/lib/geocode';
 import { fetchRoutePath } from '@/lib/osrm';
 
@@ -53,7 +55,7 @@ function parseForm(formData: FormData) {
     duration_nights: formData.get('duration_nights') ?? 0,
     max_seats: formData.get('max_seats'),
     booked_seats: formData.get('booked_seats') ?? 0,
-    language: formData.get('language'),
+    languages: formData.getAll('languages'),
     is_active: formData.get('is_active') === 'on' || formData.get('is_active') === 'true',
   });
 }
@@ -63,20 +65,25 @@ type DB = NonNullable<ReturnType<typeof createServiceSupabase>>;
 /** Upload many images to storage; returns their public URLs. Validates each. */
 async function uploadMany(db: DB, files: FormDataEntryValue[]): Promise<string[]> {
   const out: string[] = [];
+  const media: { url: string; path: string; name: string }[] = [];
   for (const file of files) {
     if (!file || typeof file === 'string') continue;
     const f = file as File;
     if (!f.size) continue;
     const invalid = validateImage(f);
     if (invalid) throw new Error(`${f.name}: ${invalid}`);
-    const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const path = `covers/${crypto.randomUUID()}.${ext}`;
+    // Optimize + normalize proportions (16:10 WebP) before storing.
+    const img = await processImage(f);
+    const path = `covers/${crypto.randomUUID()}.${img.ext}`;
     const { error } = await db.storage
       .from(BUCKET)
-      .upload(path, f, { contentType: f.type || 'image/jpeg', upsert: false });
-    if (error) throw new Error('Не удалось загрузить фото: ' + error.message);
-    out.push(db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl);
+      .upload(path, img.buffer, { contentType: img.contentType, upsert: false });
+    if (error) throw new Error('Չհաջողվեց վերբեռնել լուսանկարը: ' + error.message);
+    const url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    out.push(url);
+    media.push({ url, path, name: f.name });
   }
+  await recordMedia(db, media); // mirror into the shared media library
   return out;
 }
 
@@ -125,7 +132,8 @@ function toRow(input: ReturnType<typeof tourSchema.parse>) {
     duration_nights: input.duration_nights,
     max_seats: input.max_seats,
     // booked_seats is maintained automatically by the sync_booked_seats trigger.
-    language: input.language,
+    languages: input.languages,
+    language: legacyLanguage(input.languages), // keep legacy column in sync
     is_active: input.is_active,
   };
 }
@@ -134,10 +142,10 @@ export async function createTour(_prev: ActionState, formData: FormData): Promis
   await requireAdmin();
   const parsed = parseForm(formData);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Проверьте поля формы.' };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Ստուգեք ձևի դաշտերը.' };
   }
   const db = createServiceSupabase();
-  if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
+  if (!db) return { ok: false, error: 'ԲԴ հասանելիություն չկա (service key).' };
 
   let urls: string[] = [];
   try {
@@ -168,10 +176,10 @@ export async function updateTour(id: string, _prev: ActionState, formData: FormD
   await requireAdmin();
   const parsed = parseForm(formData);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Проверьте поля формы.' };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Ստուգեք ձևի դաշտերը.' };
   }
   const db = createServiceSupabase();
-  if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
+  if (!db) return { ok: false, error: 'ԲԴ հասանելիություն չկա (service key).' };
 
   let urls: string[] = [];
   try {
@@ -227,10 +235,10 @@ const IMPORT_SCHEMA = {
 export async function importTourFromUrl(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
   const url = String(formData.get('url') ?? '').trim();
-  if (!/^https?:\/\/.+/.test(url)) return { ok: false, error: 'Введите корректный URL (http/https).' };
+  if (!/^https?:\/\/.+/.test(url)) return { ok: false, error: 'Մուտքագրեք ճիշտ URL (http/https).' };
 
   const key = process.env.FIRECRAWL_API_KEY;
-  if (!key) return { ok: false, error: 'FIRECRAWL_API_KEY не задан в .env.local.' };
+  if (!key) return { ok: false, error: 'FIRECRAWL_API_KEY-ը նշված չէ .env.local-ում.' };
 
   type Extracted = {
     title?: string;
@@ -261,18 +269,18 @@ export async function importTourFromUrl(_prev: ActionState, formData: FormData):
     });
     const data = await res.json();
     if (!res.ok || !data?.data?.json) {
-      return { ok: false, error: 'Не удалось извлечь данные со страницы. Проверьте ссылку.' };
+      return { ok: false, error: 'Չհաջողվեց տվյալներ քաղել էջից. Ստուգեք հղումը.' };
     }
     j = data.data.json as Extracted;
   } catch {
-    return { ok: false, error: 'Ошибка запроса к Firecrawl.' };
+    return { ok: false, error: 'Firecrawl հարցման սխալ.' };
   }
 
   const db = createServiceSupabase();
-  if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
+  if (!db) return { ok: false, error: 'ԲԴ հասանելիություն չկա (service key).' };
 
   const start = new Date(Date.now() + 7 * 86_400_000).toISOString(); // placeholder date, editor adjusts
-  const title = (j.title?.trim() || 'Импортированный тур').slice(0, 200);
+  const title = (j.title?.trim() || 'Ներմուծված տուր').slice(0, 200);
   const { data: inserted, error } = await db
     .from('tours')
     .insert({
@@ -289,18 +297,19 @@ export async function importTourFromUrl(_prev: ActionState, formData: FormData):
       duration_nights: 0,
       max_seats: 18,
       language: 'all',
+      languages: ['hy', 'ru', 'en'],
       is_active: false,
       inclusions: { hy: Array.isArray(j.inclusions) ? j.inclusions.filter(Boolean).slice(0, 30) : [] },
       exclusions: { hy: Array.isArray(j.exclusions) ? j.exclusions.filter(Boolean).slice(0, 30) : [] },
     })
     .select('id')
     .single();
-  if (error || !inserted) return { ok: false, error: error?.message ?? 'Не удалось создать тур.' };
+  if (error || !inserted) return { ok: false, error: error?.message ?? 'Չհաջողվեց ստեղծել տուրը.' };
   const tourId = inserted.id as string;
 
   if (Array.isArray(j.stops) && j.stops.length) {
     const stops = j.stops.slice(0, 20).map((s, i) => ({
-      name: String(s?.name ?? '').trim().slice(0, 200) || `Остановка ${i + 1}`,
+      name: String(s?.name ?? '').trim().slice(0, 200) || `Կանգառ ${i + 1}`,
       description: s?.description ? String(s.description).trim() : null,
     }));
     // Auto-geocode stop names (free, best-effort) so the route map works without
@@ -396,8 +405,8 @@ export async function duplicateTour(id: string): Promise<void> {
   delete s.updated_at;
   s.booked_seats = 0;
   s.is_active = false;
-  s.title_hy = `${(src.title_hy as string) ?? 'Тур'} (копия)`;
-  if (src.title_ru) s.title_ru = `${src.title_ru} (копия)`;
+  s.title_hy = `${(src.title_hy as string) ?? 'Տուր'} (պատճեն)`;
+  if (src.title_ru) s.title_ru = `${src.title_ru} (պատճեն)`;
 
   const { data: inserted, error } = await db.from('tours').insert(s).select('id').single();
   if (error || !inserted) return;

@@ -9,8 +9,8 @@ export default function NewTourPage() {
   return (
     <div className="max-w-[720px]">
       <PageHeader
-        title="Новый тур"
-        subtitle="Заполните основное и сохраните — сразу откроется редактор, где добавите остановки, фото, координаты и регион."
+        title="Նոր տուր"
+        subtitle="Լրացրեք հիմնականը և պահպանեք — անմիջապես կբացվի խմբագրիչը, որտեղ կավելացնեք կանգառներ, լուսանկարներ, կոորդինատներ և մարզ."
       />
       <ImportFromUrl />
       <TourForm action={createTour} />

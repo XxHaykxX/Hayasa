@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
         password,
       });
       if (signInError || !data.user) {
-        setError('Неверный email или пароль.');
+        setError('Սխալ էլ. փոստ կամ գաղտնաբառ։');
         setLoading(false);
         return;
       }
@@ -34,14 +34,14 @@ export default function AdminLoginPage() {
         .single();
       if (!profile?.is_admin) {
         await supabase.auth.signOut();
-        setError('У этого аккаунта нет прав администратора.');
+        setError('Այս հաշիվը չունի ադմինիստրատորի իրավունքներ։');
         setLoading(false);
         return;
       }
       router.replace('/admin');
       router.refresh();
     } catch {
-      setError('Ошибка входа. Попробуйте ещё раз.');
+      setError('Մուտքի սխալ։ Փորձեք նորից։');
       setLoading(false);
     }
   }
@@ -55,9 +55,9 @@ export default function AdminLoginPage() {
         <div className="mb-1 text-[22px] font-bold text-navy">
           Hayasa <span className="text-teal">Admin</span>
         </div>
-        <p className="mb-6 text-sm text-muted">Панель управления сайтом</p>
+        <p className="mb-6 text-sm text-muted">Կայքի կառավարման վահանակ</p>
 
-        <label className="mb-1.5 block text-[13px] font-semibold text-navy">Email</label>
+        <label className="mb-1.5 block text-[13px] font-semibold text-navy">Էլ. փոստ</label>
         <input
           type="email"
           className="hb-in mb-4"
@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
           required
         />
 
-        <label className="mb-1.5 block text-[13px] font-semibold text-navy">Пароль</label>
+        <label className="mb-1.5 block text-[13px] font-semibold text-navy">Գաղտնաբառ</label>
         <input
           type="password"
           className="hb-in mb-5"
@@ -82,7 +82,7 @@ export default function AdminLoginPage() {
         )}
 
         <AdminButton type="submit" disabled={loading} full>
-          {loading ? 'Вход…' : 'Войти'}
+          {loading ? 'Մուտք…' : 'Մուտք'}
         </AdminButton>
       </form>
     </main>

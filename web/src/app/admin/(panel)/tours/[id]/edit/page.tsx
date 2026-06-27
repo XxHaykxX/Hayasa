@@ -5,6 +5,7 @@ import { updateTour } from '../../actions';
 import { PageHeader } from '@/components/admin/Page';
 import TourForm from '../../TourForm';
 import TourPhotosManager from './TourPhotosManager';
+import GalleryPicker from './GalleryPicker';
 import StopsManager from './StopsManager';
 
 export const dynamic = 'force-dynamic';
@@ -15,23 +16,26 @@ export default async function EditTourPage({ params }: { params: { id: string } 
 
   const action = updateTour.bind(null, tour.id);
   const [stops, photos] = await Promise.all([listStops(tour.id), listTourPhotos(tour.id)]);
-  const name = tour.title_hy || tour.title_ru || 'Без названия';
+  const name = tour.title_hy || tour.title_ru || 'Անանուն';
 
   return (
     <div className="max-w-[720px]">
       <PageHeader
-        title="Редактирование тура"
+        title="Տուրի խմբագրում"
         subtitle={name}
         action={
           <nav className="flex gap-3 text-sm font-medium">
-            <a href="#photos" className="text-teal hover:text-teal-dark">Фото</a>
-            <a href="#stops" className="text-teal hover:text-teal-dark">Остановки</a>
+            <a href="#photos" className="text-teal hover:text-teal-dark">Լուսանկարներ</a>
+            <a href="#stops" className="text-teal hover:text-teal-dark">Կանգառներ</a>
           </nav>
         }
       />
       <TourForm action={action} initial={tour} />
 
       <div id="photos" className="scroll-mt-6">
+        <div className="mb-3">
+          <GalleryPicker target={{ type: 'tour', tourId: tour.id }} />
+        </div>
         <TourPhotosManager tourId={tour.id} photos={photos} />
       </div>
 

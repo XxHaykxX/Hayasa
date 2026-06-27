@@ -28,31 +28,27 @@ export async function createBooking(input: NewBooking): Promise<BookingResult> {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.tourId);
   const notes = [input.notes, isUuid ? null : `tour: ${input.tourId}`].filter(Boolean).join(' · ') || null;
   try {
-    // Attach the logged-in user so the booking shows up in their My Tours.
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const { data, error } = await supabase
-      .from('bookings')
-      .insert({
-        tour_id: isUuid ? input.tourId : null,
-        user_id: user?.id ?? null,
-        seats: input.seats,
-        full_name: input.fullName,
-        phone: input.phone,
-        notes,
-        status: 'pending',
-        source: 'web',
-      })
-      .select('id')
-      .single();
+    // Insert via a SECURITY DEFINER RPC. A direct insert with `.select()` adds
+    // `RETURNING id`, which Postgres checks against the SELECT policy
+    // (auth.uid() = user_id); for anonymous bookings user_id is null, so the
+    // returned row is invisible and the insert fails with 42501 and is lost.
+    // The RPC inserts + returns the id without tripping that check and attaches
+    // the logged-in user (auth.uid()) on the server side when present.
+    const { data, error } = await supabase.rpc('create_booking_request', {
+      p_tour_id: isUuid ? input.tourId : null,
+      p_seats: input.seats,
+      p_full_name: input.fullName,
+      p_phone: input.phone,
+      p_notes: notes,
+      p_source: 'web',
+    });
     // Bookings are confirmed offline, so a DB failure (e.g. schema not applied
     // yet) must never block the customer — degrade to an offline request.
     if (error) {
       console.warn('[booking] Supabase insert failed, treating as offline request:', error.message);
       return { ok: true, persisted: false };
     }
-    return { ok: true, persisted: true, id: data?.id };
+    return { ok: true, persisted: true, id: (data as string) ?? undefined };
   } catch (e) {
     console.warn('[booking] Supabase unreachable, treating as offline request:', e);
     return { ok: true, persisted: false };
@@ -77,7 +73,15 @@ const CATEGORY_TAG: Record<string, Localized> = {
   border: { en: 'Cross-border', ru: 'Межгранич.', hy: 'Անդրսահման' },
 };
 
-function langsFromColumn(language: string): TourLang[] {
+const LANG_TO_TOURLANG: Record<string, TourLang> = { hy: 'AM', ru: 'RU', en: 'EN' };
+
+// Build the displayed language badges. Prefer the multi-select `languages[]`
+// array; fall back to the legacy single `language` column for older rows.
+function langsFromRow(languages: string[] | null | undefined, language: string): TourLang[] {
+  if (languages && languages.length > 0) {
+    const out = languages.map((l) => LANG_TO_TOURLANG[l]).filter(Boolean) as TourLang[];
+    if (out.length > 0) return out;
+  }
   switch (language) {
     case 'hy':
       return ['AM'];
@@ -131,6 +135,7 @@ type DbTour = {
   max_seats: number;
   booked_seats: number;
   language: string;
+  languages: string[] | null;
   cover_image_url: string | null;
   route_path: [number, number][] | null;
   inclusions: DbList;
@@ -171,7 +176,7 @@ function mapTour(row: DbTour, variant: number, locale = 'en'): Tour {
     maxSeats: row.max_seats,
     price: priceFmt(row.price).replace(/ /g, ' '),
     priceAmd: row.price,
-    langs: langsFromColumn(row.language),
+    langs: langsFromRow(row.languages, row.language),
     variant: variant % 6,
     tag: CATEGORY_TAG[row.category ?? 'classic'] ?? CATEGORY_TAG.classic,
     description: loc(row.description_hy, row.description_ru, row.description_en, ''),
@@ -191,7 +196,7 @@ function mapTour(row: DbTour, variant: number, locale = 'en'): Tour {
 }
 
 const TOUR_SELECT =
-  'id,title_hy,title_ru,title_en,description_hy,description_ru,description_en,location_hy,location_ru,location_en,category,country,region,date_start,price,max_seats,booked_seats,language,cover_image_url,route_path,inclusions,exclusions,duration_days,duration_nights,tour_photos(photo_url,order_index),stops(order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,duration,destination_slug,stop_photos(photo_url,order_index))';
+  'id,title_hy,title_ru,title_en,description_hy,description_ru,description_en,location_hy,location_ru,location_en,category,country,region,date_start,price,max_seats,booked_seats,language,languages,cover_image_url,route_path,inclusions,exclusions,duration_days,duration_nights,tour_photos(photo_url,order_index),stops(order_index,name_hy,name_ru,name_en,description_hy,description_ru,description_en,latitude,longitude,duration,destination_slug,stop_photos(photo_url,order_index))';
 
 /** All active tours for the public site. Falls back to mock TOURS. */
 export async function getPublicTours(locale = 'en'): Promise<Tour[]> {

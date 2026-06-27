@@ -2,11 +2,14 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Icon } from '@/components/ui/Icon';
 import { CONTACT } from '@/lib/contact';
+import { NewsletterForm } from './NewsletterForm';
 
 export function Footer() {
   const t = useTranslations('Footer');
+  const tn = useTranslations('Newsletter');
   const links: { href: string; label: string }[] = [
     { href: '/tours', label: t('allTours') },
+    { href: '/school-tours', label: t('school') },
     { href: '/about', label: t('aboutUs') },
     { href: '/contact', label: t('contact') },
   ];
@@ -16,7 +19,12 @@ export function Footer() {
       <div className="mx-auto max-w-[1200px] px-6 py-12 grid gap-8 md:grid-cols-[1.5fr_1fr_1fr] sm:grid-cols-2 grid-cols-1">
         <div>
           <div className="font-display text-2xl font-bold mb-3">HAYASA TOURS</div>
-          <p className="font-body text-sm text-white/60 leading-relaxed max-w-xs">{t('tagline')}</p>
+          <p className="font-body text-sm text-white/60 leading-relaxed max-w-xs mb-5">{t('tagline')}</p>
+          <div className="max-w-xs">
+            <div className="font-body text-xs font-bold tracking-widest text-white/40 mb-1">{tn('title')}</div>
+            <p className="font-body text-[13px] text-white/55 leading-relaxed mb-3">{tn('desc')}</p>
+            <NewsletterForm />
+          </div>
         </div>
         <div className="flex flex-col gap-2.5">
           <div className="font-body text-xs font-bold tracking-widest text-white/40 mb-1">{t('explore')}</div>

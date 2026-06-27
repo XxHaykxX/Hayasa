@@ -10,6 +10,7 @@ import { WebMap } from '@/components/tours/WebMap';
 import { TourGallery } from '@/components/tours/TourGallery';
 import { StopGallery } from '@/components/tours/StopGallery';
 import { SceneryGallery } from '@/components/tours/SceneryGallery';
+import { Price } from '@/components/currency/Price';
 import { Reveal } from '@/components/motion/Reveal';
 import { langLabel, L, pickList } from '@/lib/tours';
 import { getPublicTour } from '@/lib/db';
@@ -108,7 +109,7 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
                     <div className="w-9 h-9 rounded-full bg-amber text-white flex items-center justify-center font-mono font-bold text-sm shadow-[0_4px_10px_rgba(226,104,94,0.32)] z-10">{i + 1}</div>
                     {i < tour.stops.length - 1 && <div className="w-0.5 flex-1 my-1" style={{ background: 'repeating-linear-gradient(180deg,#1A7A8A 0 6px,transparent 6px 12px)' }} />}
                   </div>
-                  <div className={i < tour.stops.length - 1 ? 'pb-7' : 'pb-1'}>
+                  <div className={`min-w-0 flex-1 ${i < tour.stops.length - 1 ? 'pb-7' : 'pb-1'}`}>
                     <h3 className="font-display text-2xl font-bold text-navy leading-tight mb-1.5">{L(s.name, locale)}</h3>
                     {s.duration && (
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2">
@@ -198,7 +199,7 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
                 {tour.date}
               </div>
               <div className="flex items-baseline gap-1 mb-5">
-                <span className="font-mono text-3xl font-bold text-navy">{tour.price}</span>
+                <Price amd={tour.priceAmd} className="font-mono text-3xl font-bold text-navy" />
                 <span className="font-body text-muted">{t('perPerson')}</span>
               </div>
               <div className="font-body text-[11px] font-bold tracking-widest text-muted mb-2">{t('departsIn')}</div>
@@ -216,7 +217,7 @@ export default async function TourDetailPage({ params: { id, locale } }: { param
       {/* mobile sticky CTA */}
       <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-edge bg-white/95 backdrop-blur px-5 py-3 flex items-center justify-between gap-4 shadow-[0_-6px_20px_rgba(26,58,92,0.1)]">
         <div className="flex items-baseline gap-1">
-          <span className="font-mono text-xl font-bold text-navy">{tour.price}</span>
+          <Price amd={tour.priceAmd} className="font-mono text-xl font-bold text-navy" />
           <span className="font-body text-sm text-muted">{t('perPerson')}</span>
         </div>
         <Btn variant="amber" size="md" icon="arrowRight" href={`/book/${tour.id}`}>

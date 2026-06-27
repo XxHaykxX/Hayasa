@@ -61,7 +61,7 @@ export default function PlaceSearch({
   }, []);
 
   if (!TOKEN) {
-    return <div className="text-[13px] text-[#C0564B]">Поиск недоступен — нет NEXT_PUBLIC_MAPBOX_TOKEN.</div>;
+    return <div className="text-[13px] text-[#C0564B]">Որոնումն անհասանելի է — բացակայում է NEXT_PUBLIC_MAPBOX_TOKEN-ը:</div>;
   }
 
   return (
@@ -71,7 +71,7 @@ export default function PlaceSearch({
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onFocus={() => results.length && setOpen(true)}
-        placeholder="Найти место: Гарни, Гегард…"
+        placeholder="Գտնել վայր՝ Գառնի, Գեղարդ…"
         autoComplete="off"
       />
       {loading && <span className="absolute right-3 top-3 text-xs text-muted">…</span>}

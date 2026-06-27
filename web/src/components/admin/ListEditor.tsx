@@ -42,7 +42,7 @@ export function ListEditor({
                 type="button"
                 onClick={() => setItems(items.filter((_, j) => j !== i))}
                 className="shrink-0 text-muted transition-colors hover:text-amber"
-                aria-label="Удалить пункт"
+                aria-label="Ջնջել կետ"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -67,7 +67,7 @@ export function ListEditor({
         <button
           type="button"
           onClick={add}
-          aria-label="Добавить пункт"
+          aria-label="Ավելացնել կետ"
           className="shrink-0 rounded-xl border border-edge bg-white px-3 text-navy transition-colors hover:border-teal hover:text-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" />

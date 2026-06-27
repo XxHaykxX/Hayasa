@@ -5,6 +5,8 @@ import { requireAdmin } from '@/lib/admin-auth';
 import { createServiceSupabase } from '@/lib/supabase-server';
 import { stopSchema } from '@/lib/admin-stops';
 import { validateImage } from '@/lib/admin-tours';
+import { recordMedia } from '@/lib/admin-media-data';
+import { processImage } from '@/lib/image-process';
 import { fetchRoutePath } from '@/lib/osrm';
 
 export type StopActionState = { ok: boolean; error?: string };
@@ -70,9 +72,9 @@ async function recomputeRoute(db: ReturnType<typeof createServiceSupabase>, tour
 export async function createStop(tourId: string, _prev: StopActionState, formData: FormData): Promise<StopActionState> {
   await requireAdmin();
   const parsed = parseStop(formData);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Проверьте поля.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Ստուգեք դաշտերը:' };
   const db = createServiceSupabase();
-  if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
+  if (!db) return { ok: false, error: 'Տվյալների բազայի հասանելիություն չկա (service key):' };
   const { error } = await db.from('stops').insert({ tour_id: tourId, ...toStopRow(parsed.data) });
   if (error) return { ok: false, error: error.message };
   await recomputeRoute(db, tourId);
@@ -88,9 +90,9 @@ export async function updateStop(
 ): Promise<StopActionState> {
   await requireAdmin();
   const parsed = parseStop(formData);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Проверьте поля.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Ստուգեք դաշտերը:' };
   const db = createServiceSupabase();
-  if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
+  if (!db) return { ok: false, error: 'Տվյալների բազայի հասանելիություն չկա (service key):' };
   const { error } = await db.from('stops').update(toStopRow(parsed.data)).eq('id', stopId);
   if (error) return { ok: false, error: error.message };
   await recomputeRoute(db, tourId);
@@ -128,9 +130,9 @@ export async function addStopPhoto(
   const files = formData
     .getAll('photo')
     .filter((f): f is File => typeof f !== 'string' && (f as File).size > 0);
-  if (files.length === 0) return { ok: false, error: 'Выберите файл.' };
+  if (files.length === 0) return { ok: false, error: 'Ընտրեք ֆայլ:' };
   const db = createServiceSupabase();
-  if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
+  if (!db) return { ok: false, error: 'Տվյալների բազայի հասանելիություն չկա (service key):' };
 
   // Validate all before uploading any (fail fast on a bad file).
   for (const f of files) {
@@ -140,19 +142,50 @@ export async function addStopPhoto(
 
   const { count } = await db.from('stop_photos').select('*', { count: 'exact', head: true }).eq('stop_id', stopId);
   let idx = count ?? 0;
+  const media: { url: string; path: string; name: string }[] = [];
   for (const f of files) {
-    const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const path = `stops/${stopId}/${crypto.randomUUID()}.${ext}`;
+    // Optimize + normalize proportions (16:10 WebP) before storing.
+    const img = await processImage(f);
+    const path = `stops/${stopId}/${crypto.randomUUID()}.${img.ext}`;
     const { error: upErr } = await db.storage
       .from(BUCKET)
-      .upload(path, f, { contentType: f.type || 'image/jpeg', upsert: false });
+      .upload(path, img.buffer, { contentType: img.contentType, upsert: false });
     if (upErr) return { ok: false, error: upErr.message };
     const url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
     const { error } = await db.from('stop_photos').insert({ stop_id: stopId, photo_url: url, order_index: idx++ });
     if (error) return { ok: false, error: error.message };
+    media.push({ url, path, name: f.name });
   }
+  await recordMedia(db, media); // mirror into the shared media library
   revalidate(tourId);
   return { ok: true };
+}
+
+// Attach photos picked from the shared gallery to a stop (append after the last).
+export async function attachGalleryToStop(
+  stopId: string,
+  tourId: string,
+  urls: string[],
+): Promise<{ ok: boolean; error?: string; added?: number }> {
+  await requireAdmin();
+  const db = createServiceSupabase();
+  if (!db) return { ok: false, error: 'Տվյալների բազայի հասանելիություն չկա (service key):' };
+  const clean = Array.from(new Set(urls.filter(Boolean)));
+  if (clean.length === 0) return { ok: false, error: 'Լուսանկար չի ընտրվել:' };
+
+  const { data: existing } = await db.from('stop_photos').select('photo_url').eq('stop_id', stopId);
+  const have = new Set((existing ?? []).map((r) => r.photo_url as string));
+  const fresh = clean.filter((u) => !have.has(u));
+  if (fresh.length === 0) return { ok: true, added: 0 };
+
+  const { count } = await db.from('stop_photos').select('*', { count: 'exact', head: true }).eq('stop_id', stopId);
+  let idx = count ?? 0;
+  const { error } = await db
+    .from('stop_photos')
+    .insert(fresh.map((u) => ({ stop_id: stopId, photo_url: u, order_index: idx++ })));
+  if (error) return { ok: false, error: error.message };
+  revalidate(tourId);
+  return { ok: true, added: fresh.length };
 }
 
 export async function reorderStopPhotos(stopId: string, tourId: string, orderedIds: string[]): Promise<void> {

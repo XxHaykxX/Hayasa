@@ -10,13 +10,13 @@ export type ContentField = {
 };
 
 export const CONTENT_FIELDS: ContentField[] = [
-  { key: 'contact_phone', label: 'Телефон (отображение)', group: 'contacts', placeholder: '+374 91 23 45 67' },
-  { key: 'contact_whatsapp', label: 'WhatsApp (ссылка)', group: 'contacts', placeholder: 'https://wa.me/37491234567' },
-  { key: 'contact_telegram', label: 'Telegram (ссылка)', group: 'contacts', placeholder: 'https://t.me/hayasatours' },
-  { key: 'contact_email', label: 'Email', group: 'contacts', placeholder: 'hello@hayasatours.am' },
-  { key: 'office_address', label: 'Адрес офиса (сбор группы)', group: 'contacts', placeholder: 'ул. Налбандяна 96, Ереван' },
-  { key: 'hero_title', label: 'Заголовок Hero', group: 'hero', localized: true, placeholder: 'Откройте для себя' },
-  { key: 'hero_subtitle', label: 'Подзаголовок Hero', group: 'hero', localized: true },
+  { key: 'contact_phone', label: 'Հեռախոս (ցուցադրում)', group: 'contacts', placeholder: '+374 98 70 60 54' },
+  { key: 'contact_whatsapp', label: 'WhatsApp (հղում)', group: 'contacts', placeholder: 'https://wa.me/37498706054' },
+  { key: 'contact_telegram', label: 'Telegram (հղում)', group: 'contacts', placeholder: 'https://t.me/hayasatours' },
+  { key: 'contact_email', label: 'Էլ. փոստ', group: 'contacts', placeholder: 'hello@hayasatours.am' },
+  { key: 'office_address', label: 'Գրասենյակի հասցե (խմբի հավաք)', group: 'contacts', placeholder: 'Նալբանդյան 96, Երևան' },
+  { key: 'hero_title', label: 'Hero վերնագիր', group: 'hero', localized: true, placeholder: 'Բացահայտեք' },
+  { key: 'hero_subtitle', label: 'Hero ենթավերնագիր', group: 'hero', localized: true },
 ];
 
 export const CONTENT_KEYS = CONTENT_FIELDS.map((f) => f.key);
