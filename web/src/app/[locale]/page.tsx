@@ -40,7 +40,7 @@ export default async function HomePage({ params: { locale } }: { params: { local
           <Reveal className="flex items-end justify-between mb-9">
             <div>
               <div className="font-body text-xs font-bold tracking-widest text-teal mb-2">{t('departingSoon')}</div>
-              <h2 className="font-display text-[38px] font-bold text-navy leading-none">{t('upcomingTours')}</h2>
+              <h2 className="font-display text-3xl sm:text-[38px] font-bold break-words text-navy leading-none">{t('upcomingTours')}</h2>
             </div>
             <Btn variant="outline" size="sm" icon="arrowRight" href="/tours">
               {t('allTours')}
@@ -59,7 +59,7 @@ export default async function HomePage({ params: { locale } }: { params: { local
         <div className="mx-auto max-w-[1200px] px-6 py-16">
           <Reveal className="text-center mb-12">
             <div className="font-body text-xs font-bold tracking-widest text-white/50 mb-2">{t('whyKicker')}</div>
-            <h2 className="font-display text-[38px] font-bold text-white leading-none">{t('whyTitle')}</h2>
+            <h2 className="font-display text-3xl sm:text-[38px] font-bold break-words text-white leading-none">{t('whyTitle')}</h2>
           </Reveal>
           <Parallax distance={26}>
             <Stagger className="grid gap-8 md:grid-cols-3 grid-cols-1" itemClassName="h-full">
@@ -84,7 +84,7 @@ export default async function HomePage({ params: { locale } }: { params: { local
         <div className="mx-auto max-w-[1000px] px-6 py-16">
           <Reveal className="mb-9 text-center">
             <div className="font-body text-xs font-bold tracking-widest text-teal mb-2">{t('regionsKicker')}</div>
-            <h2 className="font-display text-[38px] font-bold text-navy leading-none">{t('regionsTitle')}</h2>
+            <h2 className="font-display text-3xl sm:text-[38px] font-bold break-words text-navy leading-none">{t('regionsTitle')}</h2>
           </Reveal>
           <Reveal>
             <ArmeniaMap />
@@ -97,7 +97,7 @@ export default async function HomePage({ params: { locale } }: { params: { local
         <div className="mx-auto max-w-[1200px] px-6 py-16 grid gap-10 md:grid-cols-2 grid-cols-1 items-center">
           <Reveal direction="right">
             <div className="font-body text-xs font-bold tracking-widest text-teal mb-2">{t('aboutKicker')}</div>
-            <h2 className="font-display text-[38px] font-bold text-navy leading-tight mb-4">{t('aboutTitle')}</h2>
+            <h2 className="font-display text-3xl sm:text-[38px] font-bold break-words text-navy leading-tight mb-4">{t('aboutTitle')}</h2>
             <p className="font-body text-[15px] text-muted leading-relaxed">{t('aboutBody')}</p>
           </Reveal>
           <Stagger className="grid grid-cols-3 gap-4" itemClassName="h-full">
@@ -121,13 +121,13 @@ export default async function HomePage({ params: { locale } }: { params: { local
       <section id="contact" className="bg-white scroll-mt-20">
         <Reveal className="mx-auto max-w-[760px] px-6 py-16 text-center">
           <div className="font-body text-xs font-bold tracking-widest text-teal mb-2">{t('contactKicker')}</div>
-          <h2 className="font-display text-[38px] font-bold text-navy leading-tight mb-3">{t('contactTitle')}</h2>
+          <h2 className="font-display text-3xl sm:text-[38px] font-bold break-words text-navy leading-tight mb-3">{t('contactTitle')}</h2>
           <p className="font-body text-[15px] text-muted leading-relaxed mb-7 max-w-[520px] mx-auto">{t('contactBody')}</p>
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
-            <a href={CONTACT.whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl px-5 py-3 font-body text-sm font-bold text-white" style={{ background: '#25D366' }}>
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 mb-6">
+            <a href={CONTACT.whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[48px] flex-1 sm:flex-none items-center justify-center gap-2 rounded-xl px-6 py-3 font-body text-[15px] font-bold text-white active:scale-[0.97] transition-transform" style={{ background: '#25D366' }}>
               <Icon name="phone" size={16} color="#fff" />WhatsApp
             </a>
-            <a href={CONTACT.telegram} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl px-5 py-3 font-body text-sm font-bold text-white" style={{ background: '#0088CC' }}>
+            <a href={CONTACT.telegram} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[48px] flex-1 sm:flex-none items-center justify-center gap-2 rounded-xl px-6 py-3 font-body text-[15px] font-bold text-white active:scale-[0.97] transition-transform" style={{ background: '#0088CC' }}>
               <Icon name="send" size={15} color="#fff" />Telegram
             </a>
           </div>

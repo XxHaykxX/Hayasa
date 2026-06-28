@@ -6,9 +6,9 @@ type Variant = 'amber' | 'teal' | 'outline' | 'ghost';
 type Size = 'sm' | 'md' | 'lg';
 
 const SIZES: Record<Size, string> = {
-  sm: 'px-4 py-2 text-sm',
-  md: 'px-6 py-3 text-[15px]',
-  lg: 'px-7 py-3.5 text-base',
+  sm: 'px-5 py-2.5 text-sm min-h-[44px]',
+  md: 'px-6 py-3 text-[15px] min-h-[48px]',
+  lg: 'px-7 py-3.5 text-base min-h-[52px]',
 };
 
 const VARIANTS: Record<Variant, string> = {

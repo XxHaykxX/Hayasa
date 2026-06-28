@@ -54,6 +54,9 @@ body {
   background: #fff;
   color: #1A3A5C;
   font-family: var(--font-body), system-ui, sans-serif;
+  /* Safety net: stray wide content never produces a horizontal scroll on mobile.
+     `clip` (not `hidden`) avoids creating a scroll container, so position:sticky stays intact. */
+  overflow-x: clip;
 }
 
 ::selection {
