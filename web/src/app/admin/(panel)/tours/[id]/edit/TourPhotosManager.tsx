@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { deleteTourPhoto, reorderTourPhotos } from '../../actions';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
 import type { TourPhotoRow } from '@/lib/admin-tours-data';
 
 export default function TourPhotosManager({ tourId, photos }: { tourId: string; photos: TourPhotoRow[] }) {
@@ -12,17 +13,17 @@ export default function TourPhotosManager({ tourId, photos }: { tourId: string; 
   const [items, setItems] = useState(photos);
   const dragIndex = useRef<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
+  const confirm = useConfirm();
 
   // Keep local order in sync when the server sends a fresh list (after save/delete).
   useEffect(() => setItems(photos), [photos]);
 
-  if (items.length === 0) return null;
-
-  const onDelete = (id: string) => {
-    if (!confirm('Удалить фото?')) return;
+  const onDelete = async (id: string) => {
+    const ok = await confirm({ title: 'Ջնջե՞լ լուսանկարը', confirmLabel: 'Ջնջել', destructive: true });
+    if (!ok) return;
     startTransition(async () => {
       await deleteTourPhoto(id, tourId);
-      toast.success('Фото удалено');
+      toast.success('Լուսանկարը ջնջվեց');
       router.refresh();
     });
   };
@@ -30,7 +31,7 @@ export default function TourPhotosManager({ tourId, photos }: { tourId: string; 
   const persist = (next: TourPhotoRow[]) => {
     startTransition(async () => {
       await reorderTourPhotos(tourId, next.map((p) => p.id));
-      toast.success('Порядок сохранён');
+      toast.success('Հերթականությունը պահպանվեց');
       router.refresh();
     });
   };
@@ -53,69 +54,78 @@ export default function TourPhotosManager({ tourId, photos }: { tourId: string; 
   };
 
   return (
-    <div className="mb-6 rounded-2xl border border-edge bg-white p-5">
-      <h2 className="mb-1 text-base font-bold text-navy">Фото тура ({items.length})</h2>
-      <p className="mb-3 text-xs text-muted">Перетащите, чтобы поменять порядок. Первое фото — обложка.</p>
-      <div className="flex flex-wrap gap-3">
-        {items.map((p, i) => (
-          <div
-            key={p.id}
-            draggable={!pending}
-            onDragStart={() => (dragIndex.current = i)}
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (overIndex !== i) setOverIndex(i);
-            }}
-            onDragEnd={() => {
-              dragIndex.current = null;
-              setOverIndex(null);
-            }}
-            onDrop={() => onDrop(i)}
-            className={`relative cursor-grab rounded-lg transition active:cursor-grabbing ${
-              overIndex === i ? 'ring-2 ring-teal' : ''
-            } ${pending ? 'opacity-60' : ''}`}
-            title="Перетащите для сортировки"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.photo_url} alt="" draggable={false} className="h-[90px] w-[130px] select-none rounded-lg object-cover" />
-            {i === 0 && (
-              <span className="absolute left-1 top-1 rounded bg-navy/80 px-1.5 py-0.5 text-[10px] font-bold text-white">Обложка</span>
-            )}
-            <span className="absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded bg-black/55 text-[11px] font-bold text-white">
-              {i + 1}
-            </span>
-            <div className="absolute bottom-1 right-1 flex gap-0.5">
+    <div className="mt-3 rounded-2xl border border-edge bg-white p-5">
+      <h2 className="mb-1 text-base font-bold text-navy">Տուրի լուսանկարներ ({items.length})</h2>
+      <p className="mb-3 text-xs text-muted">Քաշեք՝ հերթականությունը փոխելու համար: Առաջին լուսանկարը՝ շապիկ:</p>
+      {items.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-edge bg-[#FAFCFC] p-6 text-center text-sm text-muted">
+          Դեռ լուսանկարներ չկան: Ավելացրեք վերևի դաշտից՝ «Ընտրել կամ վերբեռնել լուսանկար»:
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          {items.map((p, i) => (
+            <div
+              key={p.id}
+              draggable={!pending}
+              onDragStart={() => (dragIndex.current = i)}
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (overIndex !== i) setOverIndex(i);
+              }}
+              onDragEnd={() => {
+                dragIndex.current = null;
+                setOverIndex(null);
+              }}
+              onDrop={() => onDrop(i)}
+              className={`relative cursor-grab rounded-lg transition active:cursor-grabbing ${
+                overIndex === i ? 'ring-2 ring-teal' : ''
+              } ${pending ? 'opacity-60' : ''}`}
+              title="Քաշեք դասավորելու համար"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.photo_url} alt="" draggable={false} className="h-[90px] w-[130px] select-none rounded-lg object-cover" />
+              {i === 0 && (
+                <span className="absolute left-1 top-1 rounded bg-navy/80 px-1.5 py-0.5 text-[10px] font-bold text-white">Շապիկ</span>
+              )}
+              <span className="absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded bg-black/55 text-[11px] font-bold text-white">
+                {i + 1}
+              </span>
+              <div className="absolute bottom-1 right-1 flex gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => move(i, i - 1)}
+                  disabled={pending || i === 0}
+                  title="Ձախ"
+                  aria-label="Տեղափոխել լուսանկարը ձախ"
+                  className="flex h-5 w-5 items-center justify-center rounded bg-white/85 text-[12px] leading-none text-navy disabled:opacity-30"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={() => move(i, i + 1)}
+                  disabled={pending || i === items.length - 1}
+                  title="Աջ"
+                  aria-label="Տեղափոխել լուսանկարը աջ"
+                  className="flex h-5 w-5 items-center justify-center rounded bg-white/85 text-[12px] leading-none text-navy disabled:opacity-30"
+                >
+                  ›
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={() => move(i, i - 1)}
-                disabled={pending || i === 0}
-                title="Влево"
-                className="flex h-5 w-5 items-center justify-center rounded bg-white/85 text-[12px] leading-none text-navy disabled:opacity-30"
+                onClick={() => onDelete(p.id)}
+                disabled={pending}
+                title="Ջնջել լուսանկարը"
+                aria-label="Ջնջել լուսանկարը"
+                className="absolute right-1 top-1 h-[22px] w-[22px] rounded-full bg-[#C0564Bee] text-[13px] leading-[22px] text-white disabled:opacity-60"
               >
-                ‹
-              </button>
-              <button
-                type="button"
-                onClick={() => move(i, i + 1)}
-                disabled={pending || i === items.length - 1}
-                title="Вправо"
-                className="flex h-5 w-5 items-center justify-center rounded bg-white/85 text-[12px] leading-none text-navy disabled:opacity-30"
-              >
-                ›
+                ×
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => onDelete(p.id)}
-              disabled={pending}
-              title="Удалить фото"
-              className="absolute right-1 top-1 h-[22px] w-[22px] rounded-full bg-[#C0564Bee] text-[13px] leading-[22px] text-white disabled:opacity-60"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

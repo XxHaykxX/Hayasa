@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
+import { LogOut } from 'lucide-react';
 import { Shell } from '@/components/layout/Shell';
 import { Icon } from '@/components/ui/Icon';
 import { Scenery } from '@/components/ui/Scenery';
@@ -26,6 +27,7 @@ export default function ProfilePage() {
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [lang, setLang] = useState('en');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [bookings, setBookings] = useState<MyBooking[]>([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -53,16 +55,19 @@ export default function ProfilePage() {
       }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('first_name,last_name,phone,preferred_lang')
+        .select('first_name,last_name,phone,preferred_lang,avatar_url')
         .eq('id', user.id)
         .single();
       const bk = await getMyBookings();
       if (!active) return;
+      const meta = (user.user_metadata ?? {}) as Record<string, string>;
       setEmail(user.email ?? '');
       setFirstName(profile?.first_name ?? '');
       setLastName(profile?.last_name ?? '');
       setPhone(profile?.phone ?? '');
       setLang(profile?.preferred_lang ?? locale);
+      // Google sign-in supplies the avatar in user_metadata (avatar_url/picture).
+      setAvatarUrl(profile?.avatar_url || meta.avatar_url || meta.picture || '');
       setBookings(bk ?? []);
       setLoading(false);
     })();
@@ -89,6 +94,7 @@ export default function ProfilePage() {
       last_name: lastName.trim() || null,
       phone: phone.trim() || null,
       preferred_lang: lang,
+      avatar_url: avatarUrl || null,
     });
     setSaving(false);
     setSaved(true);
@@ -108,11 +114,21 @@ export default function ProfilePage() {
   const initials =
     (firstName[0] ?? email[0] ?? '?').toUpperCase() + (lastName[0] ?? '').toUpperCase();
 
-  if (!loading && !authed) {
+  if (loading) {
+    return (
+      <Shell>
+        <div className="mx-auto flex max-w-[900px] justify-center px-6 py-32">
+          <div className="h-9 w-9 animate-spin rounded-full border-2 border-edge border-t-teal" />
+        </div>
+      </Shell>
+    );
+  }
+
+  if (!authed) {
     return (
       <Shell>
         <div className="mx-auto max-w-[900px] px-6 py-24 text-center">
-          <Link href="/auth" className="inline-flex items-center gap-2 rounded-xl bg-teal px-6 py-3 font-body text-sm font-bold text-white">
+          <Link href="/auth" className="inline-flex items-center gap-2 rounded-xl bg-teal px-6 py-3 font-body text-sm font-bold text-white transition-colors hover:bg-teal-dark">
             <Icon name="arrowRight" size={16} color="#fff" />
             {t('loginPrompt')}
           </Link>
@@ -124,56 +140,87 @@ export default function ProfilePage() {
   return (
     <Shell>
       <div className="bg-aqua border-b border-edge">
-        <div className="mx-auto max-w-[900px] px-6 py-12 flex items-center gap-6">
-          <div className="w-24 h-24 rounded-full bg-white border-4 border-white shadow-[0_8px_24px_rgba(26,58,92,0.12)] flex items-center justify-center font-display text-4xl font-bold text-teal">
-            {initials || 'AP'}
-          </div>
-          <div>
-            <h1 className="font-display text-4xl font-bold text-navy leading-none mb-1.5 whitespace-nowrap">{displayName}</h1>
+        <div className="mx-auto flex max-w-[900px] flex-wrap items-center gap-6 px-6 py-12">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              referrerPolicy="no-referrer"
+              className="h-24 w-24 flex-none rounded-full border-4 border-white object-cover shadow-[0_8px_24px_rgba(26,58,92,0.12)]"
+            />
+          ) : (
+            <div className="flex h-24 w-24 flex-none items-center justify-center rounded-full border-4 border-white bg-white font-display text-4xl font-bold text-teal shadow-[0_8px_24px_rgba(26,58,92,0.12)]">
+              {initials || '?'}
+            </div>
+          )}
+          <div className="min-w-0">
+            <h1 className="mb-1.5 truncate font-display text-4xl font-bold leading-none text-navy">{displayName}</h1>
             <span className="font-body text-muted">{email}</span>
           </div>
+          <button
+            onClick={signOut}
+            className="ml-auto inline-flex items-center gap-2 rounded-xl border border-[#F1C9C3] bg-white px-4 py-2.5 font-body text-sm font-bold text-[#C0564B] transition-colors hover:bg-[#FCEDEB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E2685E] focus-visible:ring-offset-2"
+          >
+            <LogOut className="h-[18px] w-[18px]" />
+            {t('signOut')}
+          </button>
         </div>
       </div>
-      <div className="mx-auto max-w-[900px] px-6 py-10 grid gap-10">
-        <div className="grid sm:grid-cols-2 grid-cols-1 gap-6">
-          <Field label={t('phone')}>
-            <div className="flex items-center rounded-xl border border-edge bg-white">
-              <span className="font-mono text-sm text-muted px-3.5 border-r border-edge">+374</span>
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="91 23 45 67" className="flex-1 bg-transparent px-3 py-3 font-body text-[15px] text-navy outline-none" />
-            </div>
-          </Field>
-          <div>
-            <span className="block font-body text-sm font-bold text-navy mb-2">{t('language')}</span>
-            <div className="flex gap-2">
-              {langs.map(([k, f, label]) => (
-                <button
-                  key={k}
-                  onClick={() => setLang(k)}
-                  className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-3 font-body text-sm font-bold transition-colors ${lang === k ? 'bg-navy text-white' : 'bg-white border border-edge text-navy hover:border-teal'}`}
-                >
-                  <span className="text-base">{f}</span>
-                  {label}
-                </button>
-              ))}
+      <div className="mx-auto grid max-w-[900px] gap-10 px-6 py-10">
+        <div className="rounded-2xl border border-edge bg-white p-6 shadow-sm sm:p-8">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <Field label={t('firstName')}>
+              <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={t('firstName')} className="hb-in" />
+            </Field>
+            <Field label={t('lastName')}>
+              <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={t('lastName')} className="hb-in" />
+            </Field>
+            <Field label={t('phone')}>
+              <div className="flex items-center rounded-xl border border-edge bg-white focus-within:border-teal">
+                <span className="border-r border-edge px-3.5 font-mono text-sm text-muted">+374</span>
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                  inputMode="numeric"
+                  maxLength={8}
+                  placeholder="91234567"
+                  className="flex-1 bg-transparent px-3 py-3 font-body text-[15px] text-navy outline-none"
+                />
+              </div>
+            </Field>
+            <div>
+              <span className="mb-2 block font-body text-sm font-bold text-navy">{t('language')}</span>
+              <div className="flex gap-2">
+                {langs.map(([k, f, label]) => (
+                  <button
+                    key={k}
+                    onClick={() => setLang(k)}
+                    className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-3 font-body text-sm font-bold transition-colors ${lang === k ? 'bg-navy text-white' : 'border border-edge bg-white text-navy hover:border-teal'}`}
+                  >
+                    <span className="text-base">{f}</span>
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="grid sm:grid-cols-2 grid-cols-1 gap-6">
-          <Field label={t('firstName')}>
-            <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={t('firstName')} className="hb-in" />
-          </Field>
-          <Field label={t('lastName')}>
-            <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={t('lastName')} className="hb-in" />
-          </Field>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-teal px-5 py-3 font-body text-sm font-bold text-white disabled:opacity-60">
-            <Icon name="check" size={16} color="#fff" />
-            {saving ? '…' : t('save')}
-          </button>
-          {saved && <span className="font-body text-sm text-teal">✓</span>}
+          <div className="mt-6 flex items-center gap-3 border-t border-[#EAF2F1] pt-6">
+            <button
+              onClick={save}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-teal px-5 py-3 font-body text-sm font-bold text-white transition-colors hover:bg-teal-dark disabled:opacity-60"
+            >
+              <Icon name="check" size={16} color="#fff" />
+              {saving ? '…' : t('save')}
+            </button>
+            {saved && (
+              <span className="inline-flex items-center gap-1.5 font-body text-sm font-semibold text-teal">
+                <Icon name="check" size={15} color="currentColor" />
+              </span>
+            )}
+          </div>
         </div>
 
         <div>
@@ -210,10 +257,6 @@ export default function ProfilePage() {
             </a>
           </div>
         </div>
-
-        <button onClick={signOut} className="font-body text-sm text-muted hover:text-navy underline underline-offset-4 justify-self-start">
-          {t('signOut')}
-        </button>
       </div>
     </Shell>
   );

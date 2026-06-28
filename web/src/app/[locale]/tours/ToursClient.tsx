@@ -1,14 +1,24 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { Shell } from '@/components/layout/Shell';
+import { Link } from '@/i18n/navigation';
 import { Icon } from '@/components/ui/Icon';
 import { TourCard } from '@/components/tours/TourCard';
 import { Reveal } from '@/components/motion/Reveal';
 import { Stagger } from '@/components/motion/Stagger';
 import { L, type Tour } from '@/lib/tours';
 import { ATTRACTIONS } from '@/lib/attractions';
+import { REGIONS, regionByKey } from '@/lib/regions';
+
+// All-locale searchable text for region matching (data may be HY-only).
+const regionText = (tour: Tour) =>
+  [tour.name, tour.loc, ...tour.stops.flatMap((s) => [s.name, s.desc])]
+    .flatMap((o) => [o.hy, o.ru, o.en])
+    .join(' ')
+    .toLowerCase();
 
 const monthIndex = (ts: number) => {
   const d = new Date(ts);
@@ -17,7 +27,10 @@ const monthIndex = (ts: number) => {
 
 export default function ToursClient({ tours }: { tours: Tour[] }) {
   const t = useTranslations('Tours');
+  const tSchool = useTranslations('Nav');
   const locale = useLocale();
+  const searchParams = useSearchParams();
+  const [region, setRegion] = useState<string | null>(searchParams.get('region'));
   const [query, setQuery] = useState('');
   const [dateF, setDateF] = useState('all');
   const [lang, setLang] = useState<'all' | 'AM' | 'RU' | 'EN'>('all');
@@ -26,14 +39,24 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
   const [attraction, setAttraction] = useState('');
   const [attrOpen, setAttrOpen] = useState(false);
   const [attrQuery, setAttrQuery] = useState('');
+  const [regOpen, setRegOpen] = useState(false);
   const locRef = useRef<HTMLDivElement>(null);
   const attrRef = useRef<HTMLDivElement>(null);
+  const regRef = useRef<HTMLDivElement>(null);
+
+  // Keep the region filter in sync with the URL (clicking another marz on the map).
+  useEffect(() => {
+    setRegion(searchParams.get('region'));
+  }, [searchParams]);
+
+  const reg = regionByKey(region);
 
   // Close dropdowns when clicking outside them.
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       if (locRef.current && !locRef.current.contains(e.target as Node)) setLocOpen(false);
       if (attrRef.current && !attrRef.current.contains(e.target as Node)) setAttrOpen(false);
+      if (regRef.current && !regRef.current.contains(e.target as Node)) setRegOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
@@ -74,6 +97,16 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
         .join(' ')}`.toLowerCase();
       if (!txt.includes(attrKw)) return false;
     }
+    if (reg) {
+      if (tour.region) {
+        // Exact match once the region is set in admin…
+        if (tour.region !== reg.key) return false;
+      } else {
+        // …falling back to keywords for tours without a region yet.
+        const txt = regionText(tour);
+        if (!reg.kw.some((k) => k && txt.includes(k))) return false;
+      }
+    }
     if (dateF === 'this' && monthIndex(tour.target) !== curMonth) return false;
     if (dateF === 'next' && monthIndex(tour.target) !== curMonth + 1) return false;
     return true;
@@ -89,6 +122,26 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
           <p className="font-body text-muted">{t('subtitle', { count: filtered.length })}</p>
         </Reveal>
       </div>
+      <div className="mx-auto max-w-[1200px] px-6 pt-8">
+        <Link
+          href="/school-tours"
+          className="group flex items-center justify-between gap-4 rounded-[14px] border border-edge bg-navy px-6 py-5 text-white transition-shadow hover:shadow-[0_12px_30px_rgba(26,58,92,0.18)]"
+        >
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:grid size-11 flex-none place-content-center rounded-full bg-yellow text-navy">
+              <Icon name="users" size={22} color="currentColor" />
+            </span>
+            <div>
+              <div className="font-display text-xl font-bold leading-tight">{tSchool('school')}</div>
+              <p className="font-body text-sm text-white/65">Դասարանով ճանապարհ՝ տրանսպորտ և գիդ ներառված, գներ՝ մեկ աշակերտի համար.</p>
+            </div>
+          </div>
+          <span className="flex-none inline-flex items-center gap-1.5 font-body text-sm font-bold text-yellow">
+            <span className="hidden sm:inline">Դիտել</span>
+            <Icon name="arrowRight" size={18} color="currentColor" />
+          </span>
+        </Link>
+      </div>
       <div className="mx-auto max-w-[1200px] px-6 py-8">
         <div className="flex flex-col gap-4 mb-9">
           <div className="relative max-w-md">
@@ -103,6 +156,44 @@ export default function ToursClient({ tours }: { tours: Tour[] }) {
             />
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <div className="relative" ref={regRef}>
+              <button
+                onClick={() => setRegOpen((o) => !o)}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-body text-sm font-medium transition-colors ${reg ? 'border-navy bg-navy text-white' : 'border-edge bg-white text-navy hover:border-teal'}`}
+              >
+                {reg ? L(reg.label, locale) : t('region')}
+                <Icon name="chevronDown" size={15} color={reg ? '#fff' : '#6A8A88'} />
+              </button>
+              {regOpen && (
+                <div className="absolute z-20 mt-2 w-52 overflow-hidden rounded-xl border border-edge bg-white shadow-[0_10px_30px_rgba(26,58,92,0.14)]">
+                  <div className="max-h-72 overflow-auto py-1">
+                    {reg && (
+                      <button
+                        onClick={() => {
+                          setRegion(null);
+                          setRegOpen(false);
+                        }}
+                        className="block w-full px-4 py-2 text-left font-body text-sm text-muted hover:bg-mist"
+                      >
+                        — {t('all')} —
+                      </button>
+                    )}
+                    {REGIONS.map((r) => (
+                      <button
+                        key={r.key}
+                        onClick={() => {
+                          setRegion(r.key);
+                          setRegOpen(false);
+                        }}
+                        className={`block w-full px-4 py-2 text-left font-body text-sm transition-colors ${region === r.key ? 'bg-aqua font-bold text-teal' : 'text-navy hover:bg-mist'}`}
+                      >
+                        {L(r.label, locale)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               {dateFilters.map(([k, label]) => (
                 <button

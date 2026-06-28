@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Map, Compass, Calendar, Clock, Users, Plus } from 'lucide-react';
 import { createServiceSupabase, createServerSupabase } from '@/lib/supabase-server';
 import { STATUS_LABEL, STATUS_COLOR } from '@/lib/admin-bookings';
+import { PageHeader } from '@/components/admin/Page';
+import { AdminButton } from '@/components/admin/AdminButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,56 +58,53 @@ function StatCard({
       <div className="mb-3 inline-flex rounded-xl p-2.5" style={{ background: tint.bg }}>
         <Icon className="h-5 w-5" style={{ color: tint.fg }} />
       </div>
-      <div className="font-mono text-[28px] font-bold leading-none text-navy">{value.toLocaleString('ru-RU')}</div>
+      <div className="font-mono text-[28px] font-bold leading-none text-navy">{value.toLocaleString('hy-AM')}</div>
       <div className="mt-1.5 text-sm text-muted">{label}</div>
     </div>
   );
 }
 
 const fmt = (iso: string) =>
-  new Date(iso).toLocaleString('ru-RU', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  new Date(iso).toLocaleString('hy-AM', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 export default async function AdminDashboard() {
   const d = await getData();
 
   return (
     <div>
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="mb-1 text-[26px] font-bold text-navy">Дашборд</h1>
-          <p className="text-sm text-muted">Обзор сайта Hayasa Tours.</p>
-        </div>
-        <Link
-          href="/admin/tours/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-teal px-[18px] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-dark"
-        >
-          <Plus className="h-4 w-4" /> Новый тур
-        </Link>
-      </div>
+      <PageHeader
+        title="Վահանակ"
+        subtitle="Hayasa Tours կայքի ակնարկ։"
+        action={
+          <AdminButton href="/admin/tours/new">
+            <Plus className="h-4 w-4" /> Նոր տուր
+          </AdminButton>
+        }
+      />
 
       {!d ? (
         <div className="max-w-[520px] rounded-2xl border border-edge bg-white px-[22px] py-5 text-[#C0564B]">
-          Не удалось получить данные. Проверьте подключение к Supabase.
+          Չհաջողվեց ստանալ տվյալները։ Ստուգեք Supabase-ի կապը։
         </div>
       ) : (
         <>
           <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5 md:grid-cols-3">
-            <StatCard Icon={Map} label="Всего туров" value={d.tours} tint={{ bg: '#E3F4F1', fg: '#1A7A8A' }} />
-            <StatCard Icon={Compass} label="Активных" value={d.activeTours} tint={{ bg: '#E4F4EC', fg: '#2A9D6A' }} />
-            <StatCard Icon={Calendar} label="Всего броней" value={d.bookings} tint={{ bg: '#E7EFF6', fg: '#1A3A5C' }} />
-            <StatCard Icon={Clock} label="В ожидании" value={d.pending} tint={{ bg: '#FCEDEB', fg: '#E2685E' }} />
-            <StatCard Icon={Users} label="Мест забронировано" value={d.seatsTotal} tint={{ bg: '#E3F4F1', fg: '#1A7A8A' }} />
+            <StatCard Icon={Map} label="Ընդամենը տուրեր" value={d.tours} tint={{ bg: '#E3F4F1', fg: '#1A7A8A' }} />
+            <StatCard Icon={Compass} label="Ակտիվ" value={d.activeTours} tint={{ bg: '#E4F4EC', fg: '#2A9D6A' }} />
+            <StatCard Icon={Calendar} label="Ընդամենը ամրագրումներ" value={d.bookings} tint={{ bg: '#E7EFF6', fg: '#1A3A5C' }} />
+            <StatCard Icon={Clock} label="Սպասման մեջ" value={d.pending} tint={{ bg: '#FCEDEB', fg: '#E2685E' }} />
+            <StatCard Icon={Users} label="Ամրագրված տեղեր" value={d.seatsTotal} tint={{ bg: '#E3F4F1', fg: '#1A7A8A' }} />
           </div>
 
           <div className="rounded-2xl border border-edge bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-bold text-navy">Последние брони</h2>
+              <h2 className="text-base font-bold text-navy">Վերջին ամրագրումներ</h2>
               <Link href="/admin/bookings" className="text-sm font-medium text-teal hover:text-teal-dark">
-                Все брони
+                Բոլոր ամրագրումները
               </Link>
             </div>
             {d.recent.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted">Броней пока нет.</p>
+              <p className="py-6 text-center text-sm text-muted">Ամրագրումներ դեռ չկան։</p>
             ) : (
               <div className="divide-y divide-[#EAF2F1]">
                 {d.recent.map((b) => {
@@ -117,7 +116,7 @@ export default async function AdminDashboard() {
                         <div className="truncate text-sm font-semibold text-navy">{b.full_name}</div>
                         <div className="truncate text-xs text-muted">{tour}</div>
                       </div>
-                      <div className="hidden text-xs text-muted sm:block">мест: {b.seats}</div>
+                      <div className="hidden text-xs text-muted sm:block">տեղեր: {b.seats}</div>
                       <span
                         className="rounded-full px-2.5 py-1 text-xs font-semibold"
                         style={{ background: color.bg, color: color.fg }}

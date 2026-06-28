@@ -3,7 +3,7 @@
 // site_content so we never hardcode a fake address into structured data
 // (Google penalises inconsistent/fake NAP).
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://hayasatours.com').replace(/\/$/, '');
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://hayasatours.am').replace(/\/$/, '');
 
 export const ORG_ID = `${SITE_URL}/#organization`;
 export const WEBSITE_ID = `${SITE_URL}/#website`;
@@ -32,16 +32,15 @@ export const SAME_AS = [
   process.env.NEXT_PUBLIC_TRIPADVISOR_URL,
 ].filter(Boolean) as string[];
 
-export const LOCALES = ['en', 'ru', 'hy'] as const;
+export const LOCALES = ['hy'] as const;
 
-/** Build the hreflang alternates map for a path suffix (e.g. "/tours/abc"). */
+/** Build the hreflang alternates map for a path suffix (e.g. "/tours/abc").
+ *  Armenian-only site → single hy alternate + x-default. */
 export function altLanguages(pathSuffix: string): Record<string, string> {
   const s = pathSuffix.startsWith('/') || pathSuffix === '' ? pathSuffix : `/${pathSuffix}`;
   return {
-    en: `${SITE_URL}/en${s}`,
-    ru: `${SITE_URL}/ru${s}`,
     hy: `${SITE_URL}/hy${s}`,
-    'x-default': `${SITE_URL}/en${s}`,
+    'x-default': `${SITE_URL}/hy${s}`,
   };
 }
 

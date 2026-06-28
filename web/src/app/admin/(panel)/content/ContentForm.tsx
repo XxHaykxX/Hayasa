@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { toast } from 'sonner';
 import { CONTENT_FIELDS } from '@/lib/site-content';
+import { AdminButton } from '@/components/admin/AdminButton';
 import { saveContent, type ContentState } from './actions';
 
 const labelCls = 'mb-1.5 block text-[13px] font-semibold text-navy';
@@ -12,13 +13,9 @@ const cardCls = 'mb-5 max-w-[560px] rounded-2xl border border-edge bg-white p-6'
 function SaveButton() {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-xl bg-teal px-6 py-3 text-[15px] font-semibold text-white transition-opacity disabled:opacity-70"
-    >
-      {pending ? 'Сохранение…' : 'Сохранить'}
-    </button>
+    <AdminButton type="submit" disabled={pending}>
+      {pending ? 'Պահպանվում է…' : 'Պահպանել'}
+    </AdminButton>
   );
 }
 
@@ -32,14 +29,14 @@ export default function ContentForm({
   useEffect(() => {
     if (state === lastState.current) return;
     lastState.current = state;
-    if (state.saved) toast.success('Контент сохранён');
+    if (state.saved) toast.success('Բովանդակությունը պահպանվեց');
     else if (state.ok === false && state.error) toast.error(state.error);
   }, [state]);
 
   return (
     <form action={formAction}>
       <div className={cardCls}>
-        <h2 className="mb-4 text-base font-bold text-navy">Контакты</h2>
+        <h2 className="mb-4 text-base font-bold text-navy">Կապեր</h2>
         <div className="grid gap-3.5">
           {CONTENT_FIELDS.filter((f) => f.group === 'contacts').map((f) => (
             <div key={f.key}>
@@ -51,23 +48,18 @@ export default function ContentForm({
       </div>
 
       <div className={cardCls}>
-        <h2 className="mb-1 text-base font-bold text-navy">Главный экран (Hero)</h2>
-        <p className="mb-4 text-xs text-muted">Пусто = текст по умолчанию из переводов сайта.</p>
+        <h2 className="mb-1 text-base font-bold text-navy">Գլխավոր էկրան (Hero)</h2>
+        <p className="mb-4 text-xs text-muted">Դատարկ = կանխադրված տեքստ կայքի թարգմանություններից։</p>
         <div className="grid gap-4">
           {CONTENT_FIELDS.filter((f) => f.group === 'hero').map((f) => (
             <div key={f.key}>
               <label className={labelCls}>{f.label}</label>
-              <div className="grid gap-2">
-                {(['ru', 'hy', 'en'] as const).map((lng) => (
-                  <input
-                    key={lng}
-                    name={`${f.key}_${lng}`}
-                    className="hb-in"
-                    defaultValue={values[f.key]?.[lng] ?? ''}
-                    placeholder={lng.toUpperCase()}
-                  />
-                ))}
-              </div>
+              <input
+                name={`${f.key}_hy`}
+                className="hb-in"
+                defaultValue={values[f.key]?.hy ?? ''}
+                placeholder={f.placeholder}
+              />
             </div>
           ))}
         </div>

@@ -12,16 +12,16 @@ const clean = (v: FormDataEntryValue | null) => ((v as string) ?? '').trim() || 
 export async function saveContent(_prev: ContentState, formData: FormData): Promise<ContentState> {
   await requireAdmin();
   const db = createServiceSupabase();
-  if (!db) return { ok: false, error: 'Нет доступа к БД (service key).' };
+  if (!db) return { ok: false, error: 'Տվյալների բազայի հասանելիություն չկա (service key)։' };
 
   const now = new Date().toISOString();
   const rows = CONTENT_FIELDS.map((f) =>
     f.localized
       ? {
+          // HY-only entry: only HY is collected. value_ru/value_en go null
+          // (public read falls back to value_hy).
           key: f.key,
-          value_ru: clean(formData.get(`${f.key}_ru`)),
           value_hy: clean(formData.get(`${f.key}_hy`)),
-          value_en: clean(formData.get(`${f.key}_en`)),
           updated_at: now,
         }
       : { key: f.key, value_ru: clean(formData.get(f.key)), updated_at: now },

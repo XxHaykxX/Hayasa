@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, type MouseEvent } from 'react';
-import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Icon } from '@/components/ui/Icon';
 import { Scenery } from '@/components/ui/Scenery';
 import { Countdown } from '@/components/ui/Countdown';
-import { L, type Tour } from '@/lib/tours';
+import { L, pickList, type Tour } from '@/lib/tours';
+import { Price } from '@/components/currency/Price';
 
 // In-card photo carousel. Lives inside the card <Link>, so its controls call
 // preventDefault to avoid navigating when you page through photos.
@@ -31,7 +31,22 @@ function CardMedia({ images, alt, variant }: { images: string[]; alt: string; va
   return (
     <>
       {usingPhotos ? (
-        <Image src={images[i]} alt={alt} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
+        images.map((src, idx) => (
+          // Stacked + opacity-cross-faded for instant switching; plain <img>
+          // straight off the CDN (photos are already optimized 16:10 WebP).
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={idx}
+            src={src}
+            alt={idx === i ? alt : ''}
+            aria-hidden={idx !== i}
+            loading="lazy"
+            draggable={false}
+            className={`absolute inset-0 h-full w-full select-none object-cover transition-opacity duration-300 ${
+              idx === i ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        ))
       ) : (
         <Scenery variant={sceneryVariants[i]} />
       )}
@@ -81,8 +96,8 @@ export function TourCard({ tour }: { tour: Tour }) {
   const images = Array.from(
     new Set([tour.cover, ...(tour.photos ?? []), ...tour.stops.flatMap((s) => s.photos ?? [])].filter(Boolean)),
   ) as string[];
-  const inc = (tour.inclusions?.[lc] ?? tour.inclusions?.en ?? []).slice(0, 4);
-  const exc = (tour.exclusions?.[lc] ?? tour.exclusions?.en ?? []).slice(0, 2);
+  const inc = pickList(tour.inclusions, lc).slice(0, 4);
+  const exc = pickList(tour.exclusions, lc).slice(0, 2);
 
   const days = tour.durationDays ?? 1;
   const nights = tour.durationNights ?? 0;
@@ -142,8 +157,7 @@ export function TourCard({ tour }: { tour: Tour }) {
         )}
         <div className="mt-auto flex items-center justify-between border-t border-edge pt-4">
           <div>
-            <span className="font-mono text-lg font-bold text-navy">{tour.price}</span>
-            <span className="font-body text-sm text-muted"> ֏</span>
+            <Price amd={tour.priceAmd} className="font-mono text-lg font-bold text-navy" />
           </div>
           <span className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber px-4 py-2 font-body text-sm font-bold text-white shadow-[0_6px_16px_rgba(226,104,94,0.30)] transition-all group-hover:bg-amber-dark">
             {t('viewTour')}

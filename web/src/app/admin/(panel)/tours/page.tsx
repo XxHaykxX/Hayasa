@@ -1,96 +1,96 @@
-import Link from 'next/link';
 import { listTours } from '@/lib/admin-tours-data';
-import { CATEGORY_LABEL, COUNTRY_LABEL } from '@/lib/admin-tours';
-import TourActions from './TourActions';
+import {
+  CATEGORY_LABEL,
+  COUNTRY_LABEL,
+  TOUR_CATEGORIES,
+  TOUR_COUNTRIES,
+} from '@/lib/admin-tours';
+import { PageHeader } from '@/components/admin/Page';
+import { AdminButton } from '@/components/admin/AdminButton';
+import ToursTableClient from './ToursTableClient';
+import ImportExportBar from './ImportExportBar';
 
 export const dynamic = 'force-dynamic';
 
-const th = 'px-3 pb-2.5 text-left text-xs font-semibold uppercase tracking-wide text-muted';
-const td = 'border-t border-[#EAF2F1] px-3 py-3 align-middle text-sm';
+const SORTS: { value: string; label: string }[] = [
+  { value: 'created_desc', label: 'Սկզբում նորերը' },
+  { value: 'created_asc', label: 'Սկզբում հները' },
+  { value: 'date_asc', label: 'Տուրի ամսաթիվ ↑' },
+  { value: 'date_desc', label: 'Տուրի ամսաթիվ ↓' },
+  { value: 'price_asc', label: 'Գին ↑' },
+  { value: 'price_desc', label: 'Գին ↓' },
+  { value: 'name_asc', label: 'Անվանումն Ա→Ֆ' },
+];
 
-function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+export default async function AdminToursPage({
+  searchParams,
+}: {
+  searchParams: { q?: string; country?: string; category?: string; status?: string; sort?: string };
+}) {
+  const q = searchParams.q ?? '';
+  const country = searchParams.country ?? 'all';
+  const category = searchParams.category ?? 'all';
+  const status = searchParams.status ?? 'all';
+  const sort = searchParams.sort ?? 'created_desc';
 
-export default async function AdminToursPage() {
-  const tours = await listTours();
+  const tours = await listTours({ q, country, category, status, sort });
+  const filtered = !!(q || country !== 'all' || category !== 'all' || status !== 'all');
 
   return (
     <div>
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <h1 className="mb-1 text-[26px] font-bold text-navy">Туры</h1>
-          <p className="text-sm text-muted">Всего: {tours.length}</p>
-        </div>
-        <Link
-          href="/admin/tours/new"
-          className="rounded-xl bg-teal px-[18px] py-2.5 text-sm font-semibold text-white"
-        >
-          + Новый тур
-        </Link>
-      </div>
+      <PageHeader
+        title="Տուրեր"
+        subtitle={`${filtered ? 'Գտնվեց' : 'Ընդամենը'}: ${tours.length}`}
+        action={<AdminButton href="/admin/tours/new">+ Նոր տուր</AdminButton>}
+      />
+
+      <ImportExportBar />
+
+      {/* Filters */}
+      <form method="get" className="mb-[18px] flex flex-wrap items-center gap-2.5">
+        <input name="q" defaultValue={q} placeholder="Որոնում ըստ անվան կամ վայրի" className="hb-in max-w-[260px]" />
+        <select name="country" defaultValue={country} className="hb-in w-auto">
+          <option value="all">Բոլոր երկրները</option>
+          {TOUR_COUNTRIES.map((c) => (
+            <option key={c} value={c}>
+              {COUNTRY_LABEL[c]}
+            </option>
+          ))}
+        </select>
+        <select name="category" defaultValue={category} className="hb-in w-auto">
+          <option value="all">Բոլոր կատեգորիաները</option>
+          {TOUR_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {CATEGORY_LABEL[c]}
+            </option>
+          ))}
+        </select>
+        <select name="status" defaultValue={status} className="hb-in w-auto">
+          <option value="all">Բոլոր կարգավիճակները</option>
+          <option value="active">Ակտիվ</option>
+          <option value="hidden">Թաքնված</option>
+        </select>
+        <select name="sort" defaultValue={sort} className="hb-in w-auto">
+          {SORTS.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+        <AdminButton type="submit">Կիրառել</AdminButton>
+        {filtered && (
+          <AdminButton variant="ghost" href="/admin/tours">
+            Զրոյացնել
+          </AdminButton>
+        )}
+      </form>
 
       {tours.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-edge bg-white p-10 text-center text-muted">
-          Туров пока нет. Создайте первый или засейте из mock-данных.
+          {filtered ? 'Զտիչով տուրեր չեն գտնվել.' : 'Տուրեր դեռ չկան. Ստեղծեք առաջինը կամ լրացրեք mock-տվյալներից.'}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-edge bg-white p-4">
-          <table className="w-full min-w-[760px] border-collapse">
-            <thead>
-              <tr>
-                <th className={th}>Название</th>
-                <th className={th}>Страна</th>
-                <th className={th}>Категория</th>
-                <th className={th}>Дата</th>
-                <th className={th}>Цена</th>
-                <th className={th}>Места</th>
-                <th className={th}>Статус</th>
-                <th className={th}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {tours.map((t) => (
-                <tr key={t.id}>
-                  <td className={td}>
-                    <Link href={`/admin/tours/${t.id}/edit`} className="font-semibold text-navy no-underline">
-                      {t.title_ru}
-                    </Link>
-                  </td>
-                  <td className={td}>{COUNTRY_LABEL[t.country as 'am' | 'ge'] ?? t.country}</td>
-                  <td className={td}>
-                    {t.category ? CATEGORY_LABEL[t.category as keyof typeof CATEGORY_LABEL] ?? t.category : '—'}
-                  </td>
-                  <td className={td}>{fmtDate(t.date_start)}</td>
-                  <td className={td}>
-                    {t.price.toLocaleString('ru-RU')} {t.currency}
-                  </td>
-                  <td className={td}>
-                    {t.booked_seats}/{t.max_seats}
-                  </td>
-                  <td className={td}>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        t.is_active ? 'bg-[#E3F4F1] text-teal' : 'bg-[#F2EDED] text-[#9A8E8E]'
-                      }`}
-                    >
-                      {t.is_active ? 'Активен' : 'Скрыт'}
-                    </span>
-                  </td>
-                  <td className={td}>
-                    <TourActions id={t.id} isActive={t.is_active} title={t.title_ru} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ToursTableClient tours={tours} />
       )}
     </div>
   );

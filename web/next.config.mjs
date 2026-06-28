@@ -8,6 +8,14 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Allow an isolated build dir (e.g. a prod build alongside a running dev
+  // server) via NEXT_DIST_DIR; defaults to .next.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
+  // Barrel-file tree-shaking: pull only used symbols from these large packages,
+  // shrinking client bundles and speeding up route compilation.
+  experimental: {
+    optimizePackageImports: ['framer-motion', 'lucide-react'],
+  },
   images: {
     remotePatterns: supabaseHost
       ? [{ protocol: 'https', hostname: supabaseHost, pathname: '/storage/v1/object/public/**' }]

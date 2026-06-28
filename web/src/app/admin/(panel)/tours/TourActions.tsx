@@ -3,7 +3,9 @@
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { deleteTour, toggleTourActive } from './actions';
+import { AdminButton } from '@/components/admin/AdminButton';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
+import { deleteTour, toggleTourActive, duplicateTour } from './actions';
 
 export default function TourActions({
   id,
@@ -16,40 +18,50 @@ export default function TourActions({
 }) {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const confirm = useConfirm();
 
   function onToggle() {
     startTransition(async () => {
       await toggleTourActive(id, !isActive);
-      toast.success(isActive ? 'Тур скрыт' : 'Тур показан');
+      toast.success(isActive ? 'Տուրը թաքցվեց' : 'Տուրը ցուցադրվեց');
       router.refresh();
     });
   }
 
-  function onDelete() {
-    if (!confirm(`Удалить тур «${title}»? Действие необратимо.`)) return;
+  async function onDelete() {
+    const ok = await confirm({
+      title: 'Ջնջել տուրը?',
+      body: `«${title}» — գործողությունն անշրջելի է.`,
+      confirmLabel: 'Ջնջել',
+      destructive: true,
+    });
+    if (!ok) return;
     startTransition(async () => {
       await deleteTour(id);
-      toast.success('Тур удалён');
+      toast.success('Տուրը ջնջվեց');
       router.refresh();
     });
   }
 
-  const btn =
-    'rounded-lg border border-edge bg-white px-2.5 py-1.5 text-[13px] disabled:opacity-60';
+  function onDuplicate() {
+    startTransition(async () => {
+      await duplicateTour(id);
+      toast.success('Ստեղծվեց պատճեն (թաքնված)');
+      router.refresh();
+    });
+  }
 
   return (
     <div className="flex gap-2">
-      <button type="button" onClick={onToggle} disabled={pending} className={btn}>
-        {isActive ? 'Скрыть' : 'Показать'}
-      </button>
-      <button
-        type="button"
-        onClick={onDelete}
-        disabled={pending}
-        className={`${btn} border-[#F1C9C3] text-[#C0564B]`}
-      >
-        Удалить
-      </button>
+      <AdminButton variant="secondary" size="sm" onClick={onToggle} disabled={pending}>
+        {isActive ? 'Թաքցնել' : 'Ցուցադրել'}
+      </AdminButton>
+      <AdminButton variant="secondary" size="sm" onClick={onDuplicate} disabled={pending}>
+        Կրկնօրինակ
+      </AdminButton>
+      <AdminButton variant="destructive" size="sm" onClick={onDelete} disabled={pending}>
+        Ջնջել
+      </AdminButton>
     </div>
   );
 }

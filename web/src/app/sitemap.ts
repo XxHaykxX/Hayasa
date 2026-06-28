@@ -2,20 +2,20 @@ import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
 import { getPublicTours } from '@/lib/db';
 
-const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://hayasatours.com').replace(/\/$/, '');
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://hayasatours.am').replace(/\/$/, '');
 
 // hreflang alternates for a path suffix, so Google sees every language version.
 function alts(suffix: string) {
   const languages: Record<string, string> = {};
   for (const l of routing.locales) languages[l] = `${SITE}/${l}${suffix}`;
-  languages['x-default'] = `${SITE}/en${suffix}`;
+  languages['x-default'] = `${SITE}/hy${suffix}`;
   return { languages };
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Only public, indexable pages. Account pages (/my-tours, /profile, /auth) are
   // auth-gated with no SEO value — excluded here and noindex'd at the page level.
-  const staticPaths = ['', '/tours', '/privacy'];
+  const staticPaths = ['', '/tours', '/about', '/contact', '/privacy'];
   const tours = await getPublicTours();
   const lastModified = new Date();
   const entries: MetadataRoute.Sitemap = [];

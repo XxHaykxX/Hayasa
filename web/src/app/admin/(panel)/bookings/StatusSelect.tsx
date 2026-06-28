@@ -18,7 +18,7 @@ export default function StatusSelect({ id, value }: { id: string; value: Booking
         const next = e.target.value;
         startTransition(async () => {
           await updateBookingStatus(id, next);
-          toast.success('Статус брони обновлён');
+          toast.success('Ամրագրման կարգավիճակը թարմացվեց');
           router.refresh();
         });
       }}

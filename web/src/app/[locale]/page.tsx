@@ -9,6 +9,7 @@ import { Reveal } from '@/components/motion/Reveal';
 import { Stagger } from '@/components/motion/Stagger';
 import { Parallax } from '@/components/motion/Parallax';
 import { CountUp } from '@/components/motion/CountUp';
+import { ArmeniaMap } from '@/components/ArmeniaMap';
 import { getPublicTours } from '@/lib/db';
 import { getContact, getContentLocalized } from '@/lib/site-content-data';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -75,6 +76,19 @@ export default async function HomePage({ params: { locale } }: { params: { local
               ))}
             </Stagger>
           </Parallax>
+        </div>
+      </section>
+
+      {/* regions map */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1000px] px-6 py-16">
+          <Reveal className="mb-9 text-center">
+            <div className="font-body text-xs font-bold tracking-widest text-teal mb-2">{t('regionsKicker')}</div>
+            <h2 className="font-display text-[38px] font-bold text-navy leading-none">{t('regionsTitle')}</h2>
+          </Reveal>
+          <Reveal>
+            <ArmeniaMap />
+          </Reveal>
         </div>
       </section>
 

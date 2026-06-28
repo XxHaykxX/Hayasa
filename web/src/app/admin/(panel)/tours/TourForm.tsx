@@ -1,14 +1,17 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
-import Link from 'next/link';
+import { AdminButton } from '@/components/admin/AdminButton';
+import { FileInput } from '@/components/admin/FileInput';
+import { ListEditor } from '@/components/admin/ListEditor';
+import { REGIONS } from '@/lib/regions';
 import {
   TOUR_CATEGORIES,
   TOUR_COUNTRIES,
-  TOUR_LANGUAGES,
+  TOUR_LANG_OPTIONS,
+  TOUR_LANG_LABEL,
   CATEGORY_LABEL,
   COUNTRY_LABEL,
-  LANGUAGE_LABEL,
   type TourRow,
 } from '@/lib/admin-tours';
 import type { ActionState } from './actions';
@@ -29,79 +32,51 @@ function toLocalInput(iso?: string): string {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-xl bg-teal px-6 py-3 text-[15px] font-semibold text-white transition-opacity disabled:opacity-70"
-    >
-      {pending ? 'Сохранение…' : 'Сохранить'}
-    </button>
+    <AdminButton type="submit" disabled={pending}>
+      {pending ? 'Պահպանում…' : 'Պահպանել'}
+    </AdminButton>
   );
 }
 
 export default function TourForm({ action, initial }: { action: Action; initial?: TourRow | null }) {
   const [state, formAction] = useFormState(action, { ok: true });
 
+  // Pre-check the language boxes from the saved array, falling back to the
+  // legacy single `language` column ('all' → all three) for older tours.
+  const initialLangs: readonly string[] =
+    initial?.languages && initial.languages.length > 0
+      ? initial.languages
+      : initial?.language === 'hy' || initial?.language === 'ru' || initial?.language === 'en'
+        ? [initial.language]
+        : ['hy', 'ru', 'en'];
+
   return (
     <form action={formAction}>
-      {/* Primary content — Armenian (the main language) */}
+      {/* Content — Armenian only (site language) */}
       <div className={cardCls}>
-        <h2 className={h2Cls}>Основное · армянский (главный язык)</h2>
+        <h2 className={h2Cls}>Հիմնական</h2>
         <div className="grid gap-3.5">
           <div>
-            <label className={labelCls}>Название HY *</label>
+            <label className={labelCls}>Անվանում *</label>
             <input name="title_hy" className="hb-in" defaultValue={initial?.title_hy ?? ''} required />
           </div>
           <div>
-            <label className={labelCls}>Описание HY</label>
+            <label className={labelCls}>Նկարագրություն</label>
             <textarea name="description_hy" className="hb-in" rows={3} defaultValue={initial?.description_hy ?? ''} />
           </div>
           <div>
-            <label className={labelCls}>Локация HY · подзаголовок карточки</label>
+            <label className={labelCls}>Վայր · քարտի ենթավերնագիր</label>
             <input name="location_hy" className="hb-in" defaultValue={initial?.location_hy ?? ''} placeholder="Գեղարդ · Գառնի" />
           </div>
         </div>
       </div>
 
-      {/* Translations — RU / EN (optional, collapsed by default) */}
-      <details className={cardCls}>
-        <summary className="cursor-pointer list-none text-base font-bold text-navy">
-          Переводы · Русский / English <span className="font-normal text-muted">(необязательно)</span>
-        </summary>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div>
-            <label className={labelCls}>Название RU</label>
-            <input name="title_ru" className="hb-in" defaultValue={initial?.title_ru ?? ''} />
-          </div>
-          <div>
-            <label className={labelCls}>Название EN</label>
-            <input name="title_en" className="hb-in" defaultValue={initial?.title_en ?? ''} />
-          </div>
-          <div>
-            <label className={labelCls}>Описание RU</label>
-            <textarea name="description_ru" className="hb-in" rows={3} defaultValue={initial?.description_ru ?? ''} />
-          </div>
-          <div>
-            <label className={labelCls}>Описание EN</label>
-            <textarea name="description_en" className="hb-in" rows={3} defaultValue={initial?.description_en ?? ''} />
-          </div>
-          <div>
-            <label className={labelCls}>Локация RU</label>
-            <input name="location_ru" className="hb-in" defaultValue={initial?.location_ru ?? ''} placeholder="Гегард · Гарни" />
-          </div>
-          <div>
-            <label className={labelCls}>Локация EN</label>
-            <input name="location_en" className="hb-in" defaultValue={initial?.location_en ?? ''} placeholder="Geghard · Garni" />
-          </div>
-        </div>
-      </details>
-
       {/* Meta */}
       <div className={cardCls}>
-        <h2 className={h2Cls}>Параметры</h2>
+        <h2 className={h2Cls}>Պարամետրեր</h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3.5">
           <div>
-            <label className={labelCls}>Категория</label>
+            <label className={labelCls}>Կատեգորիա</label>
             <select name="category" className="hb-in" defaultValue={initial?.category ?? 'classic'}>
               {TOUR_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -111,7 +86,7 @@ export default function TourForm({ action, initial }: { action: Action; initial?
             </select>
           </div>
           <div>
-            <label className={labelCls}>Страна</label>
+            <label className={labelCls}>Երկիր</label>
             <select name="country" className="hb-in" defaultValue={initial?.country ?? 'am'}>
               {TOUR_COUNTRIES.map((c) => (
                 <option key={c} value={c}>
@@ -121,84 +96,103 @@ export default function TourForm({ action, initial }: { action: Action; initial?
             </select>
           </div>
           <div>
-            <label className={labelCls}>Язык тура</label>
-            <select name="language" className="hb-in" defaultValue={initial?.language ?? 'all'}>
-              {TOUR_LANGUAGES.map((l) => (
-                <option key={l} value={l}>
-                  {LANGUAGE_LABEL[l]}
+            <label className={labelCls}>Մարզ</label>
+            <select name="region" className="hb-in" defaultValue={initial?.region ?? ''}>
+              <option value="">— նշված չէ —</option>
+              {REGIONS.map((r) => (
+                <option key={r.key} value={r.key}>
+                  {r.label.hy}
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <label className={labelCls}>Дата и время старта *</label>
+            <label className={labelCls}>Տուրի լեզու</label>
+            <div className="flex flex-wrap gap-2">
+              {TOUR_LANG_OPTIONS.map((l) => {
+                const checked = initialLangs.includes(l);
+                return (
+                  <label
+                    key={l}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-edge bg-white px-3.5 py-2.5 text-sm font-medium text-navy has-[:checked]:border-teal has-[:checked]:bg-teal/5"
+                  >
+                    <input type="checkbox" name="languages" value={l} defaultChecked={checked} className="accent-teal" />
+                    {TOUR_LANG_LABEL[l]}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <label className={labelCls}>Մեկնման ամսաթիվ և ժամ *</label>
             <input type="datetime-local" name="date_start" className="hb-in" defaultValue={toLocalInput(initial?.date_start)} required />
           </div>
           <div>
-            <label className={labelCls}>Цена (AMD) *</label>
+            <label className={labelCls}>Գին (AMD) *</label>
             <input type="number" name="price" className="hb-in" min={0} defaultValue={initial?.price ?? 0} required />
           </div>
           <div>
-            <label className={labelCls}>Дней</label>
+            <label className={labelCls}>Օր</label>
             <input type="number" name="duration_days" className="hb-in" min={1} defaultValue={initial?.duration_days ?? 1} />
           </div>
           <div>
-            <label className={labelCls}>Ночей</label>
+            <label className={labelCls}>Գիշեր</label>
             <input type="number" name="duration_nights" className="hb-in" min={0} defaultValue={initial?.duration_nights ?? 0} />
           </div>
           <div>
-            <label className={labelCls}>Всего мест *</label>
+            <label className={labelCls}>Ընդամենը տեղեր *</label>
             <input type="number" name="max_seats" className="hb-in" min={1} defaultValue={initial?.max_seats ?? 18} required />
           </div>
         </div>
         <label className="mt-4 flex items-center gap-2 text-sm">
           <input type="checkbox" name="is_active" defaultChecked={initial?.is_active ?? true} />
-          Тур активен (виден на сайте)
+          Տուրն ակտիվ է (ցուցադրվում է կայքում)
         </label>
       </div>
 
       {/* Inclusions / Exclusions */}
       <div className={cardCls}>
-        <h2 className={h2Cls}>Что входит / не входит (каждый пункт с новой строки)</h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <h2 className={h2Cls}>Ինչ է ներառված / չներառված</h2>
+        <p className="mb-4 text-xs text-muted">Ավելացրեք կետերը մեկ առ մեկ — Enter կամ «+».</p>
+        <div className="grid gap-5 md:grid-cols-2">
           <div>
-            <div className="mb-2 text-[13px] font-bold text-teal">✓ Входит в тур</div>
-            <div className="grid gap-2.5">
-              <textarea name="inclusions_ru" className="hb-in" rows={5} placeholder="Входит — Русский (по строке на пункт)" defaultValue={initial?.inclusions?.ru?.join('\n') ?? ''} />
-              <textarea name="inclusions_hy" className="hb-in" rows={5} placeholder="Входит — Armenian (HY)" defaultValue={initial?.inclusions?.hy?.join('\n') ?? ''} />
-              <textarea name="inclusions_en" className="hb-in" rows={5} placeholder="Includes — English (EN)" defaultValue={initial?.inclusions?.en?.join('\n') ?? ''} />
-            </div>
+            <div className="mb-2 text-[13px] font-bold text-teal">✓ Ներառված է տուրում</div>
+            <ListEditor name="inclusions_hy" initial={initial?.inclusions?.hy ?? []} placeholder="Ավելացնել կետ" />
           </div>
           <div>
-            <div className="mb-2 text-[13px] font-bold text-[#C0564B]">✕ Не входит</div>
-            <div className="grid gap-2.5">
-              <textarea name="exclusions_ru" className="hb-in" rows={5} placeholder="Не входит — Русский (по строке на пункт)" defaultValue={initial?.exclusions?.ru?.join('\n') ?? ''} />
-              <textarea name="exclusions_hy" className="hb-in" rows={5} placeholder="Не входит — Armenian (HY)" defaultValue={initial?.exclusions?.hy?.join('\n') ?? ''} />
-              <textarea name="exclusions_en" className="hb-in" rows={5} placeholder="Excludes — English (EN)" defaultValue={initial?.exclusions?.en?.join('\n') ?? ''} />
-            </div>
+            <div className="mb-2 text-[13px] font-bold text-amber">✕ Ներառված չէ</div>
+            <ListEditor name="exclusions_hy" initial={initial?.exclusions?.hy ?? []} placeholder="Ավելացնել կետ" />
           </div>
         </div>
       </div>
 
-      {/* Photos */}
-      <div className={cardCls}>
-        <h2 className={h2Cls}>Фото тура</h2>
-        <input type="file" name="photos" accept="image/*" multiple />
-        <p className="mt-2 text-xs text-muted">
-          Можно выбрать несколько — они идут в карусель карточки. Первое фото становится обложкой. PNG/JPG/WebP, до 5 МБ каждое.
-          {initial ? ' Уже загруженные фото — ниже, под формой.' : ''}
-        </p>
-      </div>
+      {/* Photos — only in the CREATE form (no tour id yet to attach gallery
+          picks to). In EDIT, photos are managed below via the gallery picker
+          (upload to / pick from the shared gallery). */}
+      {!initial && (
+        <div className={cardCls}>
+          <h2 className={h2Cls}>Տուրի լուսանկարներ</h2>
+          <FileInput
+            name="photos"
+            multiple
+            label="Քաշեք լուսանկարներն այստեղ կամ ընտրեք"
+            hint="Կարող եք ընտրել մի քանիսը — դրանք գնում են քարտի կարուսել. Առաջին լուսանկարը դառնում է շապիկ. PNG/JPG/WebP, յուրաքանչյուրը մինչև 5 ՄԲ. Պահպանելուց հետո կբացվի խմբագրիչը՝ պատկերասրահից լուսանկարներ ավելացնելու համար."
+          />
+        </div>
+      )}
+
+      <p className="mb-3 text-xs text-muted">Աստղանիշով * դաշտերը պարտադիր են.</p>
 
       {!state.ok && state.error && (
         <div className="mb-4 rounded-[10px] bg-[#FCEDEB] px-3.5 py-3 text-sm text-[#C0564B]">{state.error}</div>
       )}
 
-      <div className="flex items-center gap-3">
+      {/* Sticky action bar — keeps Save reachable on the long edit page. */}
+      <div className="sticky bottom-0 z-30 -mx-1 mt-2 flex items-center gap-3 rounded-t-xl border-t border-edge bg-white/95 px-1 py-3 backdrop-blur">
         <SubmitButton />
-        <Link href="/admin/tours" className="text-sm text-muted no-underline">
-          Отмена
-        </Link>
+        <AdminButton variant="ghost" href="/admin/tours">
+          Չեղարկել
+        </AdminButton>
       </div>
     </form>
   );

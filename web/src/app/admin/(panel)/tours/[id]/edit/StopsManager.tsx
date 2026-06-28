@@ -4,9 +4,11 @@ import { useEffect, useRef, useState, useTransition, type FormEvent } from 'reac
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import type { StopRow } from '@/lib/admin-stops';
-import { createStop, updateStop, deleteStop, addStopPhoto, deleteStopPhoto, reorderStops, reorderStopPhotos } from './stops-actions';
+import { createStop, updateStop, deleteStop, deleteStopPhoto, reorderStops, reorderStopPhotos } from './stops-actions';
 import type { StopPhotoRow } from '@/lib/admin-stops';
 import StopPlacePicker from './StopPlacePicker';
+import GalleryPicker from './GalleryPicker';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
 
 const labelCls = 'mb-1.5 block text-xs font-semibold text-navy';
 const cardCls = 'mb-3.5 rounded-2xl border border-edge bg-white p-[18px]';
@@ -18,44 +20,25 @@ function StopFields({ stop, place, setPlace }: { stop?: StopRow; place: PlaceSta
   return (
     <>
       <div className="mb-3">
-        <label className={labelCls}>Поиск места на карте (координаты заполнятся сами)</label>
+        <label className={labelCls}>Վայրի որոնում քարտեզի վրա (կոորդինատները կլրացվեն ինքնաբերաբար)</label>
         <StopPlacePicker value={place} onChange={(patch) => setPlace({ ...place, ...patch })} />
       </div>
       <input type="hidden" name="latitude" value={place.lat} />
       <input type="hidden" name="longitude" value={place.lng} />
       {place.lat && place.lng && (
-        <p className="mb-3 text-[12px] text-muted">Координаты с карты: {place.lat}, {place.lng}</p>
+        <p className="mb-3 text-[12px] text-muted">Կոորդինատներ քարտեզից՝ {place.lat}, {place.lng}</p>
       )}
       <div className="grid gap-2.5">
         <div>
-          <label className={labelCls}>Название HY *</label>
+          <label className={labelCls}>Անվանում *</label>
           <input name="name_hy" className="hb-in" value={place.name} onChange={(e) => setPlace({ ...place, name: e.target.value })} required />
         </div>
-        <textarea name="description_hy" className="hb-in" rows={2} placeholder="Описание HY" defaultValue={stop?.description_hy ?? ''} />
+        <textarea name="description_hy" className="hb-in" rows={2} placeholder="Նկարագրություն" defaultValue={stop?.description_hy ?? ''} />
       </div>
       <div className="mt-2.5">
-        <label className={labelCls}>Длительность (напр. «50–60 мин»)</label>
-        <input name="duration" className="hb-in" defaultValue={stop?.duration ?? ''} placeholder="50–60 мин" />
+        <label className={labelCls}>Տևողություն (օր.՝ «50–60 րոպե»)</label>
+        <input name="duration" className="hb-in" defaultValue={stop?.duration ?? ''} placeholder="50–60 րոպե" />
       </div>
-      <details className="mt-3 rounded-xl border border-edge bg-[#FAFCFC] p-3">
-        <summary className="cursor-pointer list-none text-[13px] font-semibold text-navy">
-          Переводы · RU / EN <span className="font-normal text-muted">(необязательно)</span>
-        </summary>
-        <div className="mt-3 grid gap-2.5">
-          <div className="grid grid-cols-2 gap-2.5">
-            <div>
-              <label className={labelCls}>Название RU</label>
-              <input name="name_ru" className="hb-in" defaultValue={stop?.name_ru ?? ''} />
-            </div>
-            <div>
-              <label className={labelCls}>Название EN</label>
-              <input name="name_en" className="hb-in" defaultValue={stop?.name_en ?? ''} />
-            </div>
-          </div>
-          <textarea name="description_ru" className="hb-in" rows={2} placeholder="Описание RU" defaultValue={stop?.description_ru ?? ''} />
-          <textarea name="description_en" className="hb-in" rows={2} placeholder="Описание EN" defaultValue={stop?.description_en ?? ''} />
-        </div>
-      </details>
     </>
   );
 }
@@ -64,6 +47,7 @@ function StopCard({ stop, index, tourId }: { stop: StopRow; index: number; tourI
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const confirm = useConfirm();
   const [place, setPlace] = useState<PlaceState>({
     name: stop.name_hy ?? '',
     lat: stop.latitude != null ? String(stop.latitude) : '',
@@ -84,7 +68,7 @@ function StopCard({ stop, index, tourId }: { stop: StopRow; index: number; tourI
     setPhotos(next);
     startTransition(async () => {
       await reorderStopPhotos(stop.id, tourId, next.map((p) => p.id));
-      toast.success('Порядок фото сохранён');
+      toast.success('Լուսանկարների հերթականությունը պահպանվեց');
       router.refresh();
     });
   }
@@ -97,46 +81,31 @@ function StopCard({ stop, index, tourId }: { stop: StopRow; index: number; tourI
     startTransition(async () => {
       const res = await updateStop(stop.id, tourId, { ok: true }, fd);
       if (res.ok) {
-        toast.success('Остановка сохранена');
+        toast.success('Կանգառը պահպանվեց');
         router.refresh();
       } else {
-        setError(res.error ?? 'Ошибка');
-        toast.error(res.error ?? 'Ошибка');
+        setError(res.error ?? 'Սխալ');
+        toast.error(res.error ?? 'Սխալ');
       }
     });
   }
 
-  function onDelete() {
-    if (!confirm('Удалить остановку?')) return;
+  async function onDelete() {
+    const ok = await confirm({ title: 'Ջնջե՞լ կանգառը', confirmLabel: 'Ջնջել', destructive: true });
+    if (!ok) return;
     startTransition(async () => {
       await deleteStop(stop.id, tourId);
-      toast.success('Остановка удалена');
+      toast.success('Կանգառը ջնջվեց');
       router.refresh();
     });
   }
 
-  function onAddPhoto(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const fd = new FormData(form);
-    setError(null);
-    startTransition(async () => {
-      const res = await addStopPhoto(stop.id, tourId, { ok: true }, fd);
-      if (res.ok) {
-        form.reset();
-        toast.success('Фото загружено');
-        router.refresh();
-      } else {
-        setError(res.error ?? 'Ошибка загрузки');
-        toast.error(res.error ?? 'Ошибка загрузки');
-      }
-    });
-  }
-
-  function onDeletePhoto(photoId: string) {
+  async function onDeletePhoto(photoId: string) {
+    const ok = await confirm({ title: 'Ջնջե՞լ լուսանկարը', confirmLabel: 'Ջնջել', destructive: true });
+    if (!ok) return;
     startTransition(async () => {
       await deleteStopPhoto(photoId, tourId);
-      toast.success('Фото удалено');
+      toast.success('Լուսանկարը ջնջվեց');
       router.refresh();
     });
   }
@@ -146,22 +115,22 @@ function StopCard({ stop, index, tourId }: { stop: StopRow; index: number; tourI
       <form onSubmit={onSave}>
         <div className="mb-3 flex items-center justify-between">
           <strong className="text-sm">
-            <span className="mr-2 cursor-grab select-none text-muted" title="Перетащите для смены порядка">⠿</span>#{index + 1} · {place.name || '—'}
+            <span className="mr-2 cursor-grab select-none text-muted" title="Քաշեք հերթականությունը փոխելու համար" aria-hidden>⠿</span>#{index + 1} · {place.name || '—'}
           </strong>
           <button type="button" onClick={onDelete} disabled={pending} className="rounded-lg border border-[#F1C9C3] bg-white px-2.5 py-1.5 text-xs text-[#C0564B] disabled:opacity-60">
-            Удалить остановку
+            Ջնջել կանգառը
           </button>
         </div>
         <StopFields stop={stop} place={place} setPlace={setPlace} />
         <button type="submit" disabled={pending} className="mt-3 rounded-[10px] bg-teal px-4 py-2.5 text-[13px] font-semibold text-white disabled:opacity-60">
-          {pending ? 'Сохранение…' : 'Сохранить остановку'}
+          {pending ? 'Պահպանում…' : 'Պահպանել կանգառը'}
         </button>
       </form>
 
       <div className="mt-4 border-t border-[#EAF2F1] pt-3.5">
-        <div className="mb-2 text-xs font-semibold">Фото остановки {photos.length > 1 && <span className="font-normal text-muted">· перетащите для сортировки</span>}</div>
+        <div className="mb-2 text-xs font-semibold">Կանգառի լուսանկարներ {photos.length > 1 && <span className="font-normal text-muted">· քաշեք դասավորելու համար</span>}</div>
         <div data-stop-photos className="mb-2.5 flex flex-wrap gap-2.5">
-          {photos.length === 0 && <span className="text-[13px] text-[#9DB6B4]">Фото нет.</span>}
+          {photos.length === 0 && <span className="text-[13px] text-[#9DB6B4]">Լուսանկարներ չկան:</span>}
           {photos.map((p, pi) => (
             <div
               key={p.id}
@@ -193,18 +162,13 @@ function StopCard({ stop, index, tourId }: { stop: StopRow; index: number; tourI
               <span className="absolute bottom-1 left-1 flex h-[18px] w-[18px] items-center justify-center rounded bg-black/55 text-[10px] font-bold text-white">
                 {pi + 1}
               </span>
-              <button type="button" onClick={() => onDeletePhoto(p.id)} disabled={pending} title="Удалить фото" className="absolute right-1 top-1 h-[22px] w-[22px] rounded-full border-none bg-[#C0564Bee] text-[13px] leading-[22px] text-white">
+              <button type="button" onClick={() => onDeletePhoto(p.id)} disabled={pending} title="Ջնջել լուսանկարը" aria-label="Ջնջել լուսանկարը" className="absolute right-1 top-1 h-[22px] w-[22px] rounded-full border-none bg-[#C0564Bee] text-[13px] leading-[22px] text-white">
                 ×
               </button>
             </div>
           ))}
         </div>
-        <form onSubmit={onAddPhoto} className="flex items-center gap-2">
-          <input type="file" name="photo" accept="image/*" multiple required />
-          <button type="submit" disabled={pending} className="rounded-lg border border-edge bg-white px-3 py-1.5 text-[13px]">
-            {pending ? 'Загрузка…' : 'Загрузить фото'}
-          </button>
-        </form>
+        <GalleryPicker target={{ type: 'stop', stopId: stop.id, tourId }} compact />
       </div>
 
       {error && <div className={errCls}>{error}</div>}
@@ -230,11 +194,11 @@ function AddStopForm({ tourId, nextIndex }: { tourId: string; nextIndex: number 
       if (res.ok) {
         setOpen(false);
         setPlace({ name: '', lat: '', lng: '' });
-        toast.success('Остановка добавлена');
+        toast.success('Կանգառն ավելացվեց');
         router.refresh();
       } else {
-        setError(res.error ?? 'Ошибка');
-        toast.error(res.error ?? 'Ошибка');
+        setError(res.error ?? 'Սխալ');
+        toast.error(res.error ?? 'Սխալ');
       }
     });
   }
@@ -242,7 +206,7 @@ function AddStopForm({ tourId, nextIndex }: { tourId: string; nextIndex: number 
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)} className="rounded-[10px] bg-navy px-[18px] py-2.5 text-sm font-semibold text-white">
-        + Добавить остановку
+        + Ավելացնել կանգառ
       </button>
     );
   }
@@ -250,14 +214,14 @@ function AddStopForm({ tourId, nextIndex }: { tourId: string; nextIndex: number 
   return (
     <div className={`${cardCls} border-dashed`}>
       <form onSubmit={onCreate}>
-        <strong className="mb-3 block text-sm">Новая остановка</strong>
+        <strong className="mb-3 block text-sm">Նոր կանգառ</strong>
         <StopFields place={place} setPlace={setPlace} />
         <div className="mt-3 flex gap-2.5">
           <button type="submit" disabled={pending} className="rounded-[10px] bg-teal px-4 py-2.5 text-[13px] font-semibold text-white disabled:opacity-60">
-            {pending ? 'Добавление…' : 'Добавить'}
+            {pending ? 'Ավելացում…' : 'Ավելացնել'}
           </button>
           <button type="button" onClick={() => setOpen(false)} className="text-[13px] text-muted">
-            Отмена
+            Չեղարկել
           </button>
         </div>
         {error && <div className={errCls}>{error}</div>}
@@ -290,14 +254,14 @@ export default function StopsManager({ tourId, stops }: { tourId: string; stops:
     setOrder(next);
     startTransition(async () => {
       await reorderStops(tourId, next);
-      toast.success('Порядок обновлён');
+      toast.success('Հերթականությունը թարմացվեց');
       router.refresh();
     });
   }
 
   return (
     <div>
-      <h2 className="mb-3.5 text-lg font-bold text-navy">Остановки маршрута ({stops.length})</h2>
+      <h2 className="mb-3.5 text-lg font-bold text-navy">Երթուղու կանգառներ ({stops.length})</h2>
       {ordered.map((s, idx) => (
         <div
           key={s.id}

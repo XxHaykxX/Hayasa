@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
+import { ContactWidget } from './ContactWidget';
 
 export function Shell({ children }: { children: ReactNode }) {
   return (
@@ -8,6 +9,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <Navbar />
       <main className="flex-1 pt-[68px]">{children}</main>
       <Footer />
+      <ContactWidget />
     </div>
   );
 }
