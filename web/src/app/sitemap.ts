@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
 import { getPublicTours } from '@/lib/db';
 
-const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://hayasatours.com').replace(/\/$/, '');
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://hayasatours.am').replace(/\/$/, '');
 
 // hreflang alternates for a path suffix, so Google sees every language version.
 function alts(suffix: string) {

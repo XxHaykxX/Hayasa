@@ -26,7 +26,7 @@ npm run dev                  # http://localhost:3000 → redirects to /en
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | DB, Auth, bookings | Mock tours; booking confirms offline (not persisted) |
 | `NEXT_PUBLIC_YANDEX_MAPS_KEY` | Real route map | Static SVG map tracing real coords |
-| `NEXT_PUBLIC_SITE_URL` | SEO canonical / sitemap origin | Defaults to `https://hayasatours.com` |
+| `NEXT_PUBLIC_SITE_URL` | SEO canonical / sitemap origin | Defaults to `https://hayasatours.am` |
 
 ## Pages
 

@@ -18,7 +18,7 @@ const display = Cormorant_Garamond({
 });
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hayasatours.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hayasatours.am';
 
 export async function generateMetadata({ params: { locale } }: { params: { locale: string } }): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: 'Meta' });

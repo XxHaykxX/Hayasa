@@ -3,7 +3,7 @@
 // site_content so we never hardcode a fake address into structured data
 // (Google penalises inconsistent/fake NAP).
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://hayasatours.com').replace(/\/$/, '');
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://hayasatours.am').replace(/\/$/, '');
 
 export const ORG_ID = `${SITE_URL}/#organization`;
 export const WEBSITE_ID = `${SITE_URL}/#website`;
