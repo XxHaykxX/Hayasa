@@ -7,6 +7,7 @@ import { routing } from '@/i18n/routing';
 import { OG_IMAGE, altLanguages } from '@/lib/seo';
 import { getRates } from '@/lib/rates-data';
 import { CurrencyProvider } from '@/components/currency/CurrencyProvider';
+import { MetaPixel } from '@/components/analytics/MetaPixel';
 import '../globals.css';
 
 const body = Inter({ subsets: ['latin'], variable: '--font-body' });
@@ -66,6 +67,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={`${body.variable} ${display.variable} ${mono.variable}`}>
       <body className="font-body antialiased">
+        <MetaPixel />
         <NextIntlClientProvider messages={messages}>
           <CurrencyProvider rates={rates}>{children}</CurrencyProvider>
         </NextIntlClientProvider>
